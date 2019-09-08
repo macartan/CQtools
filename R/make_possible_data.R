@@ -67,7 +67,7 @@ make_possible_data <- function(model,
 	if(!identical(length(condition), length(vars), length(N)) )
 		stop("N, cases and vars must have the same length")
 
-	g_df <- gbiqq:::make_possible_data_single(model,
+	g_df <- gbiqqtools:::make_possible_data_single(model,
 																						given = given,
 																						within = within,
 																						N = N[[1]],
@@ -216,7 +216,7 @@ make_possible_data_single <- function(model,
 
 	if(within & is.null(given)) stop("If 'within' is specified 'given' must be provided")
 
-	if(!within){possible_data <-  gbiqq:::all_possible(model, N, vars)}
+	if(!within){possible_data <-  gbiqqtools:::all_possible(model, N, vars)}
 
 	if(within){
 

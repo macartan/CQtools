@@ -36,7 +36,7 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 	df <- collapse_data(df, model)
 	# Assign n across new possible finer events
 	new_events <- cbind(event = df[df$count ==1, "event"],
-											gbiqq:::allocations(buckets[row, column], sum(df$count)))
+											gbiqqtools:::allocations(buckets[row, column], sum(df$count)))
 
 	# tidy up
 	remaining  <- data.frame(event = buckets[row, 1], matrix(buckets$count[row] - buckets[row, column], ncol = ncol(new_events)-1, nrow = 1))
@@ -61,7 +61,7 @@ all_possible <- function(model, N, vars = NULL, condition = TRUE){
 	d.frame   <- summarize_data(model, possible)
 	df        <- summarize_data(model, possible)[d.frame$count >0 ,1:2]
 
-	possible_data <- gbiqq:::allocations(N, length(df$event))
+	possible_data <- gbiqqtools:::allocations(N, length(df$event))
 	out <- matrix(0, nrow(d.frame), ncol(possible_data))
 	out[d.frame$count >0,] <- as.matrix(possible_data)
 	cbind(d.frame[,1:2], out)
