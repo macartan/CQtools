@@ -89,3 +89,39 @@ perm <- function(max = rep(1, 2)){
 	perm
 }
 
+
+
+#' Encode data
+#'
+#' Takes data in long format, including NA values or blanks and returns vector with each row encoded as a data type.
+#'
+#' @param model A  model
+#' @param data Data in long format
+#' @export
+#' @examples
+#' model <- make_model("X -> Y")
+#' data <- simulate_data(model, n = 4)
+#' data[1,1] <- ""
+#' data[3,2] <- NA
+#'
+#' encode_data(model, data)
+encode_data <- function(model, data){
+	data[data ==""] <- NA
+	vars <- model$variables
+	apply(data, MARGIN = 1, FUN = function(row){
+		paste0(vars[!(is.na(row))],row[!(is.na(row))], collapse = "")})
+}
+
+
+#' Make data compact with data as first argument
+#'
+#' @param data A data.frame.
+#' @param model A model
+#' @param remove_family Logical. If `FALSE`, removes column "family" from the output.
+#' @export
+collapse_data <- function(data, model, remove_family = TRUE){
+	x <- summarize_data(model = model, data)
+	if(remove_family) x <- x[, -2]
+	x
+}
+
