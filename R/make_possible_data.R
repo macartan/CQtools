@@ -84,7 +84,7 @@ make_possible_data <- function(model,
 		possible <- data.frame(select(g_df, event), count = 1)
 		possible <- simulate_data(model, data_events = possible)
 		possible<-  possible[with(possible, eval(parse(text = condition[[i]]))),]
-		possible <- gbiqq:::collapse_data(possible, model)
+		possible <- gbiqq:::collapse_data(possible, model, remove_family = TRUE)
 		use_this <- g_df[g_df$event %in% possible$event[possible$count>0],] >= N[[i]]
 		if(nrow(use_this) > 1) use_this <- apply(use_this, 2, any)
 		use_data <-  g_df[,use_this]
@@ -173,7 +173,7 @@ make_possible_data <- function(model,
 #'    set_restrictions(causal_type_restrict = "(Y[M=1, K= .]<Y[M=0, K= .]) | M[X=1]<M[X=0] ") %>%
 #'    set_parameter_matrix()
 #' given <- data.frame(X = c(0,0,0,1,1,1), K = NA,  M = NA, Y = c(0,0,1,0,1,1)) %>%
-#'          collapse_data(model = model)
+#'          collapse_data(model = model, remove_family = TRUE)
 #' make_possible_data_single(model, given = given,
 #'                           within = TRUE,
 #'                           N = 2,
@@ -190,7 +190,7 @@ make_possible_data <- function(model,
 #' set_restrictions(causal_type_restrict = "Y[M=1]<Y[M=0] | M[X=1]<M[X=0]") %>%
 #' set_parameter_matrix()
 #' given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
-#'          collapse_data(model)
+#'          collapse_data(model, remove_family = TRUE, remove_family = TRUE)
 #' make_possible_data_single(model,
 #'                           given = given,
 #'                           within = TRUE,
@@ -226,7 +226,7 @@ make_possible_data_single <- function(model,
 
 		possible <- get_max_possible_data(model)
 		possible <- possible[with(possible, eval(parse(text = condition))),]
-		possible <- gbiqq:::collapse_data(possible, model)
+		possible <- gbiqq:::collapse_data(possible, model, remove_family = TRUE)
 		A_w      <- get_likelihood_helpers(model)$A_w
 
 		# What is the set of types in which we can seek new data

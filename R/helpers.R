@@ -33,7 +33,7 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 	possible_findings <- perm(rep(1, length(vars)))
 	df <- df %>% slice(rep(1:n(), each = nrow(possible_findings)))
 	df[vars] <- possible_findings
-	df <- collapse_data(df, model)
+	df <- collapse_data(df, model, remove_family = TRUE)
 	# Assign n across new possible finer events
 	new_events <- cbind(event = df[df$count ==1, "event"],
 											gbiqqtools:::allocations(buckets[row, column], sum(df$count)))
@@ -110,18 +110,5 @@ encode_data <- function(model, data){
 	vars <- model$variables
 	apply(data, MARGIN = 1, FUN = function(row){
 		paste0(vars[!(is.na(row))],row[!(is.na(row))], collapse = "")})
-}
-
-
-#' Make data compact with data as first argument
-#'
-#' @param data A data.frame.
-#' @param model A model
-#' @param remove_family Logical. If `FALSE`, removes column "family" from the output.
-#' @export
-collapse_data <- function(data, model, remove_family = TRUE){
-	x <- summarize_data(model = model, data)
-	if(remove_family) x <- x[, -2]
-	x
 }
 

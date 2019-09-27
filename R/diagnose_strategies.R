@@ -120,7 +120,7 @@ diagnose_strategies_single <- function(reference_model,
 #'    set_parameter_matrix()
 #'
 #' df    <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))
-#' given <- collapse_data(df, reference_model)
+#' given <- collapse_data(df, reference_model, remove_family = TRUE)
 #'
 #' reference_model <- gbiqq(reference_model, df)
 #'

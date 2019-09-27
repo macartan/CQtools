@@ -20,7 +20,7 @@
 #' make_data_probabilities(model, pars = model$parameters, possible_data)
 #'
 #' given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
-#'   collapse_data(model)
+#'   collapse_data(model, remove_family = TRUE)
 #' possible_data <- make_possible_data(model, given = given, condition = "X==1 & Y==1", vars = "M", within = TRUE )
 #' make_data_probabilities(model, pars = model$parameters, possible_data)
 #'
