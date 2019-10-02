@@ -27,9 +27,8 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 	if(!(all(vars %in% model$variables))) stop("Vars not in model$variables")
 
 	# Figure out set of possible finer units
-	df <- simulate_data(model,
-											data_events = data.frame(
-												event = buckets$event[row], count = 1))
+	df <- expand_data(data_events = data.frame(
+												event = buckets$event[row], count = 1), model)
 	possible_findings <- perm(rep(1, length(vars)))
 	df <- df %>% slice(rep(1:n(), each = nrow(possible_findings)))
 	df[vars] <- possible_findings
@@ -45,27 +44,29 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 }
 
 
-#' helper for getting all data on variables with N observed
+#' Helper for getting all data on specified variables with N observed
 #'
 #' @examples
 #' model <- make_model("X->M->Y")
-#' gbiqq:::all_possible(model, N=2, vars = c("X", "M"))
-#' gbiqq:::all_possible(model, N=2, vars = c("X", "Y"), condition = "Y==0")
+#' gbiqqtools:::all_possible(model, N=2, vars = c("X", "M"))
+#' gbiqqtools:::all_possible(model, N=2, vars = c("X", "Y"), condition = "Y==0")
 all_possible <- function(model, N, vars = NULL, condition = TRUE){
 
 	if(is.null(vars)) vars <- model$variables
-	possible               <- get_max_possible_data(model)
-	if(!all(is.na(vars))) possible[, !names(possible) %in% vars] <- NA
-	possible <- possible[with(possible, eval(parse(text = condition))),]
 
-	d.frame   <- summarize_data(model, possible)
-	df        <- summarize_data(model, possible)[d.frame$count >0 ,1:2]
+	df <- get_max_possible_data(model) %>% filter(eval(parse(text = condition)))
 
-	possible_data <- gbiqqtools:::allocations(N, length(df$event))
-	out <- matrix(0, nrow(d.frame), ncol(possible_data))
-	out[d.frame$count >0,] <- as.matrix(possible_data)
-	cbind(d.frame[,1:2], out)
+	if(!all(is.na(vars))) df[, !names(df) %in% vars] <- NA
+
+	df  <- collapse_data(df, model, remove_family = TRUE)
+
+	possible_data <- gbiqqtools:::allocations(N, n = sum(df$count>0))
+
+	out <- matrix(0, nrow(df), ncol(possible_data))
+	out[df$count > 0,] <- as.matrix(possible_data)
+	cbind(df, out)
 }
+
 #' Produces the possible permutations of a set of variables
 #'
 #' @param max A vector of integers indicating the maximum value of an integer value starting at 0. Defaults to 1. The number of permutation is defined by \code{max}'s length
