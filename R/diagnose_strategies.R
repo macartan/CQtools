@@ -12,7 +12,7 @@ diagnose_strategies_single <- function(
 	possible_data_args = list(N = list(1), within = FALSE, condition = list(TRUE), vars = list(NULL)),
 	sims = 1000) {
 
-	# Houskeeping
+	# Housekeeping
 
 	if(is.null(possible_data)){
 
@@ -112,7 +112,7 @@ diagnose_strategies_single <- function(
 #'
 #' @param reference_model A causal model as created by \code{make_model}
 #' @param analysis_model A causal model as created by \code{make_model}
-#' @param given A data frame with exisitng data
+#' @param given A data frame with existing data
 #' @param queries queries
 #' @export
 #' @return A dataframe
@@ -150,17 +150,38 @@ diagnose_strategies_single <- function(
 #'                   estimates_database = estimates_database,
 #'                   possible_data = possible_data,
 #'                   sims = 10)
-diagnose_strategies <- function(reference_model,
+#'
+#' # Example with minimal arguments, assumes search for one case
+#'
+#' diagnose_strategies(
+#'   analysis_model = analysis_model,
+#'   queries = queries,
+#'   sims = 10)
+
+diagnose_strategies <- function(reference_model = NULL,
 																analysis_model,
-																given,
+																given = NULL,
 																queries,
 																estimates_database = NULL,
 																possible_data = NULL,
 																N = 1,
-																within = FALSE,
+																within = TRUE,
 																vars   = NULL,
 																conditions = list(TRUE),
 																sims = 1000){
+
+	# If not provided, reference model should be the analysis model, updated
+	if(is.null(reference_model)) {
+		if(!exists("fit")) fit  <- fitted_model()
+
+		if(is.null(given)) {data <- NULL} else {data <- expand_data(given, analysis_model)}
+
+		reference_model <-
+			gbiqq(analysis_model, data, stan_model = fit)
+		}
+
+	# If no data is given within is set to false
+	if(is.null(given) & within) {within <- FALSE; message("No data, within set to false")}
 
 	if(!is.null(possible_data)){
 
@@ -176,13 +197,19 @@ diagnose_strategies <- function(reference_model,
 		} else{
 
 		if(length(conditions) == 1){
-			return_list <- diagnose_strategies_single(reference_model, analysis_model, given, queries, estimates_database, possible_data, possible_data_args = list(N = N, within = within,vars = vars, condition = conditions), sims = sims)
 
-		} else{
+			possible_data_args = list(N = N, within = within, vars = vars, condition = conditions)
+
+			return_list <- gbiqqtools:::diagnose_strategies_single(reference_model, analysis_model, given, queries,
+																								estimates_database,
+																								possible_data,
+																								possible_data_args = possible_data_args, sims = sims)
+
+		} else {
 
 			## option 1
 			return_list <- lapply(conditions, function(k) {
-				diagnose_strategies_single(reference_model, analysis_model, given, queries, possible_data_args = list(N = N, within = within,vars = vars, condition = k), sims = sims)
+				diagnose_strategies_single(reference_model, analysis_model, given, queries, possible_data_args = list(N = N, within = within, vars = vars, condition = k), sims = sims)
 			})
 			names(return_list) <- conditions
 			diagnoses_df <- lapply(return_list, function(x) x$diagnoses_df)

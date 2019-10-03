@@ -39,6 +39,7 @@
 #' df <- data.frame(X = c(0,0,1,1,1), K = NA, M = NA, Y = c(0,0,0,1,1))
 #' given <- collapse_data(df, model)[, -2]
 #' make_possible_data(model, given, within = TRUE, N = 1, vars = "K")
+#' make_possible_data(model, given, within = TRUE, N = 1, vars = "K")
 #'
 #' # Look for data on M when X = 1 and Y = 0
 #' make_possible_data(model,
@@ -76,9 +77,10 @@ make_possible_data <- function(model,
 															 N = list(1),
 															 within = TRUE,
 															 condition = list(TRUE),
-															 vars = list(NULL),
+															 vars = list(model$variables),
 															 prefix = NULL) {
 
+	if(is.null(given) & within) message("No data given; 'within' changed to FALSE"); within <- FALSE
 	if(!is.null(given)) if(!identical(names(given), c("event", "count"))){
 		stop("'given' df should have two columns: event and count")}
 

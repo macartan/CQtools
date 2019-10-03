@@ -17,7 +17,7 @@
 #' # Example of posteriors given monotonic X -> M -> Y model
 #' library(dplyr)
 #' model <- make_model("X-> M -> Y")  %>%
-#'   set_restrictions(node_restrict = list(M = "10", Y = "10")) %>%
+#'   set_restrictions(labels = list(M = "10", Y = "10")) %>%
 #'   set_parameters(type = "flat")
 #' conditional_inferences(model, query = "Y[X=1]>Y[X=0]", given = "Y==1")
 #'

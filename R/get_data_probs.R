@@ -1,6 +1,7 @@
 #' Get data probabilities
 #'
 #' Takes in a matrix of possible (single case) observations and returns the probability of each.
+#' FLAG: Some redundancy with make_data_probabilities
 #'
 #' @param model A  model
 #' @param data Data in long format
@@ -16,7 +17,7 @@ get_data_probs <- function(model, data, parameters = NULL){
 		if(is.null(model$parameters)) stop("parameters not provided")
 		parameters <- model$parameters }
 
-	events  <- get_data_events(data = data, model = model)$data_events
+	# events  <- collapse_data(data = data, model = model)$event
 	A_w     <- get_likelihood_helpers(model)$A_w
 	probs   <- A_w %*% draw_event_prob(model, parameters = parameters)
 	np      <- rownames(probs)
