@@ -77,8 +77,10 @@ make_possible_data <- function(model,
 															 N = list(1),
 															 within = TRUE,
 															 condition = list(TRUE),
-															 vars = list(model$variables),
+															 vars = NULL,
 															 prefix = NULL) {
+
+	if(is.null(vars)) vars <- list(model$variables)
 
 	if(is.null(given) & within) message("No data given; 'within' changed to FALSE"); within <- FALSE
 	if(!is.null(given)) if(!identical(names(given), c("event", "count"))){

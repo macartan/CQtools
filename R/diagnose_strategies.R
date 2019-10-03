@@ -200,17 +200,19 @@ diagnose_strategies <- function(reference_model = NULL,
 
 			possible_data_args = list(N = N, within = within, vars = vars, condition = conditions)
 
-			return_list <- gbiqqtools:::diagnose_strategies_single(reference_model, analysis_model, given, queries,
-																								estimates_database,
-																								possible_data,
-																								possible_data_args = possible_data_args, sims = sims)
+			return_list <- gbiqqtools:::diagnose_strategies_single(
+				reference_model, analysis_model, given, queries,
+				estimates_database,
+				possible_data,
+				possible_data_args = possible_data_args, sims = sims)
 
 		} else {
 
-			## option 1
+			## FLAG -- likely need to loop through more than just conditions
 			return_list <- lapply(conditions, function(k) {
 				diagnose_strategies_single(reference_model, analysis_model, given, queries, possible_data_args = list(N = N, within = within, vars = vars, condition = k), sims = sims)
 			})
+
 			names(return_list) <- conditions
 			diagnoses_df <- lapply(return_list, function(x) x$diagnoses_df)
 			return_list$diagnoses_df <- do.call(rbind, diagnoses_df)
