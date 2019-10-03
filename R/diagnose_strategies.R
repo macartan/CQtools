@@ -2,25 +2,26 @@
 
 #' Diagnosis a single data strategy
 #'
-diagnose_strategies_single <- function(reference_model,
-															analysis_model,
-															given,
-															queries,
-															estimates_database = NULL,
-															possible_data = NULL,
-															possible_data_args = list(N = list(1),
-																												within = FALSE,
-																												condition = list(TRUE),
-																												vars = list(NULL)),
-															sims = 1000) {
+diagnose_strategies_single <- function(
+	reference_model,
+	analysis_model,
+	given,
+	queries,
+	estimates_database = NULL,
+	possible_data = NULL,
+	possible_data_args = list(N = list(1), within = FALSE, condition = list(TRUE), vars = list(NULL)),
+	sims = 1000) {
+
 	# Houskeeping
 
 	if(is.null(possible_data)){
+
 		possible_data_args$model <- reference_model
 		possible_data_args$given <- given
 		possible_data            <- do.call(make_possible_data, possible_data_args)
 
 	} else{
+
 		possible_data_args       <- attr(possible_data, "possible_data_args")
 
   }
@@ -41,7 +42,10 @@ diagnose_strategies_single <- function(reference_model,
 		pars   <- draw_parameters(reference_model, using = using)
 
 		# implied data probabilities
-		probs <- make_data_probabilities(reference_model, pars = pars, possible_data = possible_data)
+		probs <- make_data_probabilities(
+			reference_model,
+			pars = pars,
+			possible_data = possible_data)
 
 		# implied estimand
 		estimand <- gbiqq::query_model(reference_model,
@@ -74,7 +78,8 @@ diagnose_strategies_single <- function(reference_model,
 																			t(as.matrix(c(apply(out, 1, mean), sims = sims), nrow = 1)),
 																			stringsAsFactors = FALSE)
 
-	} else{
+	} else {
+
     n_steps     <- length(possible_data_args$N)
 		conditions_ <- paste0(possible_data_args$condition, collapse = " ")
 		vars_       <- paste0("c(", paste0(possible_data_args$vars, collapse = ", "), ")")
@@ -103,7 +108,7 @@ diagnose_strategies_single <- function(reference_model,
 
 
 
-#' Diagnosis a data strategy
+#' Diagnose a data strategy
 #'
 #' @param reference_model A causal model as created by \code{make_model}
 #' @param analysis_model A causal model as created by \code{make_model}
@@ -116,7 +121,7 @@ diagnose_strategies_single <- function(reference_model,
 #' library(dplyr)
 #' reference_model <- analysis_model <-
 #'    make_model("X->M->Y")  %>%
-#'    set_restrictions(causal_type_restrict = "Y[M=1]<Y[M=0] | M[X=1]<M[X=0] ") %>%
+#'    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) %>%
 #'    set_parameter_matrix()
 #'
 #' df    <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))
@@ -158,11 +163,23 @@ diagnose_strategies <- function(reference_model,
 																sims = 1000){
 
 	if(!is.null(possible_data)){
-		return_list <- diagnose_strategies_single(reference_model, analysis_model, given, queries, estimates_database, possible_data, sims = sims)
-	} else{
+
+		return_list <-
+			gbiqqtools:::diagnose_strategies_single(
+				reference_model,
+				analysis_model,
+				given, queries,
+				estimates_database,
+				possible_data,
+				sims = sims)
+
+		} else{
+
 		if(length(conditions) == 1){
 			return_list <- diagnose_strategies_single(reference_model, analysis_model, given, queries, estimates_database, possible_data, possible_data_args = list(N = N, within = within,vars = vars, condition = conditions), sims = sims)
+
 		} else{
+
 			## option 1
 			return_list <- lapply(conditions, function(k) {
 				diagnose_strategies_single(reference_model, analysis_model, given, queries, possible_data_args = list(N = N, within = within,vars = vars, condition = k), sims = sims)
@@ -174,18 +191,12 @@ diagnose_strategies <- function(reference_model,
 			class(return_list) <- c("strategy_diagnoses")
 		}
 
-
-
 	}
-
-
 
 	return(return_list)
 }
 
 ###
-
-
 
 #' @export
 print.strategy_diagnoses <- function(x, ...) {

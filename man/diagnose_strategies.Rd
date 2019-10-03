@@ -2,7 +2,7 @@
 % Please edit documentation in R/diagnose_strategies.R
 \name{diagnose_strategies}
 \alias{diagnose_strategies}
-\title{Diagnosis a data strategy}
+\title{Diagnose a data strategy}
 \usage{
 diagnose_strategies(reference_model, analysis_model, given, queries,
   estimates_database = NULL, possible_data = NULL, N = 1,
@@ -22,14 +22,14 @@ diagnose_strategies(reference_model, analysis_model, given, queries,
 A dataframe
 }
 \description{
-Diagnosis a data strategy
+Diagnose a data strategy
 }
 \examples{
 
 library(dplyr)
 reference_model <- analysis_model <-
    make_model("X->M->Y")  \%>\%
-   set_restrictions(causal_type_restrict = "Y[M=1]<Y[M=0] | M[X=1]<M[X=0] ") \%>\%
+   set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()
 
 df    <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))

@@ -2,15 +2,15 @@
 % Please edit documentation in R/helpers.R
 \name{all_possible}
 \alias{all_possible}
-\title{helper for getting all data on variables with N observed}
+\title{Helper for getting all data on specified variables with N observed}
 \usage{
 all_possible(model, N, vars = NULL, condition = TRUE)
 }
 \description{
-helper for getting all data on variables with N observed
+Helper for getting all data on specified variables with N observed
 }
 \examples{
 model <- make_model("X->M->Y")
-gbiqq:::all_possible(model, N=2, vars = c("X", "M"))
-gbiqq:::all_possible(model, N=2, vars = c("X", "Y"), condition = "Y==0")
+gbiqqtools:::all_possible(model, N=2, vars = c("X", "M"))
+gbiqqtools:::all_possible(model, N=2, vars = c("X", "Y"), condition = "Y==0")
 }

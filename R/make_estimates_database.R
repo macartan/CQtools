@@ -36,12 +36,12 @@ make_estimates_database <- function(model,
 	if(!exists("fit")) fit  <- fitted_model()
 	if(is.null(possible_data)) possible_data <- make_possible_data(model, given, ...)
 
-	## HACK: 3 here only because of particular shape of possible data
-	out <- sapply(3:ncol(possible_data), function(j) {
+	## HACK: 2 here only because of particular shape of possible data
+	out <- sapply(2:ncol(possible_data), function(j) {
 
 		data_events <- possible_data[, c(1, j)]
 
-		data <- simulate_data(model, data_events = data_events)
+		data <- expand_data(data_events, model)
 
 		updated <- gbiqq::gbiqq(model = model, data = data, stan_model = fit)
 

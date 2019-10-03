@@ -31,10 +31,10 @@ gather data in all cases within a given dataset ("within"). Or they can specify 
 \examples{
 library(dplyr)
 model <- make_model("X->M->Y")  \%>\%
-   set_restrictions(causal_type_restrict = "Y[M=1]<Y[M=0] | M[X=1]<M[X=0] ") \%>\%
+   set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()
 df <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))
-given <- collapse_data(df, model)[, -2]
+given <- collapse_data(df, model, remove_family = TRUE)
 
 # Look for data on M for all possible cases in the given data
 make_possible_data_single(model, N = 2)
@@ -62,10 +62,10 @@ make_possible_data_single(model, given = given,
                           vars = c("M", "K"))
 
 model <- make_model("X->M->Y")  \%>\%
-set_restrictions(causal_type_restrict = "Y[M=1]<Y[M=0] | M[X=1]<M[X=0]") \%>\%
+set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
 set_parameter_matrix()
 given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
-         collapse_data(model, remove_family = TRUE, remove_family = TRUE)
+         collapse_data(model, remove_family = TRUE)
 make_possible_data_single(model,
                           given = given,
                           within = TRUE,
