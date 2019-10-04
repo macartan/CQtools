@@ -82,7 +82,7 @@ make_possible_data <- function(model,
 
 	if(is.null(vars)) vars <- list(model$variables)
 
-	if(is.null(given) & within) message("No data given; 'within' changed to FALSE"); within <- FALSE
+	if(is.null(given) & within) {message("No data given; 'within' changed to FALSE"); within <- FALSE}
 	if(!is.null(given)) if(!identical(names(given), c("event", "count"))){
 		stop("'given' df should have two columns: event and count")}
 

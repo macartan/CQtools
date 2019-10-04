@@ -152,11 +152,20 @@ diagnose_strategies_single <- function(
 #'                   sims = 10)
 #'
 #' # Example with minimal arguments, assumes search for one case
-#'
 #' diagnose_strategies(
 #'   analysis_model = analysis_model,
 #'   queries = queries,
 #'   sims = 10)
+#'
+#'# Example comparing two data strategies
+#' diagnose_strategies(
+#'   analysis_model = analysis_model,
+#'   given = given,
+#'   queries = queries,
+#'   sims = 1000,
+#'   vars = "M",
+#'   conditions = list("X==1", "Y==1" ))
+
 
 diagnose_strategies <- function(reference_model = NULL,
 																analysis_model,
