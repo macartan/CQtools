@@ -10,34 +10,48 @@
 #' @param possible_data A data frame with possible data
 #' @param queries Queries
 #' @export
-#' @return A dataframe
+#' @return A list with query output dataframes for each data strategy
 #' @examples
-#' #' library(dplyr)
+#' library(dplyr)
 #' model <- make_model("X->M->Y")  %>%
-#'    set_restrictions(causal_type_restrict = "Y[M=1]<Y[M=0] | M[X=1]<M[X=0] ") %>%
+#'    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) %>%
 #'    set_parameter_matrix()
 #'
-#' given = data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))
+#' given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
+#'         collapse_data(model, remove_family = TRUE)
 #'
-#' possible_data <- make_possible_data(model, given)
+#'
+#' possible_data <- make_possible_data(model, given, vars = "M", condition = "X==1 & Y==1")
 #'
 #' estimates_database <- make_estimates_database(
 #'       model,
 #'       given = given,
-#'       possible_data,
+#'       possible_data = possible_data,
 #'       queries = "Y[X=1]>Y[X=0]")
 #'
+#' estimates_database <- make_estimates_database(
+#'       model,
+#'       given = given,
+#'       possible_data = possible_data,
+#'       queries = c(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]>Y[X=0]"),
+#'       subsets = c(TRUE, "Y==1 & X==1"))
+
 
 make_estimates_database <- function(model,
 																		given,
 																		possible_data = NULL,
-																		queries = "Y[X=1]>Y[X=0]") {
+																		queries = "Y[X=1]>Y[X=0]",
+																		subsets = TRUE,
+																		expand_grid = FALSE) {
 
 	if(!exists("fit")) fit  <- fitted_model()
 	if(is.null(possible_data)) possible_data <- make_possible_data(model, given, ...)
 
-	## HACK: 2 here only because of particular shape of possible data
-	out <- sapply(2:ncol(possible_data), function(j) {
+
+	## Update model for each possible data type and query updated model
+	## Note: 2 here only because of particular shape of possible data
+
+	lapply(2:ncol(possible_data), function(j) {
 
 		data_events <- possible_data[, c(1, j)]
 
@@ -45,14 +59,11 @@ make_estimates_database <- function(model,
 
 		updated <- gbiqq::gbiqq(model = model, data = data, stan_model = fit)
 
-		gbiqq::query_model(updated,
-											 queries = queries,
-											 using = "posteriors",
-											 subset = TRUE)
+		data.frame(
+			query_model(updated, queries = queries, using = "posteriors", subset = subsets, expand_grid = expand_grid),
+			data_pattern = j -1
+			)
 
 	})
-	## NEED BETTER OUTPUT FORMAT? NAD INCLUDE SUMMARY OF DATA IN TEH OUTPUT DATABASE TO IMPROVE LEGIBILITY
-	t(out)
+
 }
-## NOTE NEED TO ADD SUBSET ARGUMENT
-##  gbiqq::gbiqq necessary for me for reasons I don't understand!

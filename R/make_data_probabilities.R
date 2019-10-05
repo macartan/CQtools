@@ -1,4 +1,3 @@
-
 #' Generates a probability distribution over possible data outcomes
 #'
 #' NOTE: This needs to be checked for whether it is taking account of strategy probabilities properly
@@ -22,11 +21,11 @@
 #' possible_data <- make_possible_data(model, given = given, condition = "X==1 & Y==1", vars = "M", within = TRUE )
 #' make_data_probabilities(model, pars = model$parameters, possible_data)
 #'
-make_data_probabilities <- function(model, pars,  possible_data) {
+make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL) {
 
-	A_w <- (get_likelihood_helpers(model)$A_w)[possible_data$event, ]
-	w   <-  draw_event_prob(model, parameters = pars, using = "parameters")
-	w_full = A_w %*% w
+	if(is.null(A_w)) A_w <- (get_likelihood_helpers(model)$A_w)[possible_data$event, ]
+
+	w_full = A_w %*% (draw_event_prob(model, parameters = pars, using = "parameters"))
 
 	# Flag: not very elegant. Better maybe to carry strategy along with possible data
   strategy <- possible_data$strategy
