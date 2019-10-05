@@ -10,9 +10,8 @@
 #' @examples
 #'
 #' library(dplyr)
-#' model <- make_model("X->M->Y")
-#'
-#' model <- set_parameters(model, type = "flat")
+#' model <- make_model("X->M->Y") %>%
+#'          set_parameters(type = "flat")
 #' possible_data <- make_possible_data(model, N= 2, vars = list(model$variables), within = FALSE)
 #' make_data_probabilities(model, pars = model$parameters, possible_data)
 #'
@@ -21,8 +20,9 @@
 #' possible_data <- make_possible_data(model, given = given, condition = "X==1 & Y==1", vars = "M", within = TRUE )
 #' make_data_probabilities(model, pars = model$parameters, possible_data)
 #'
-make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL) {
+make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, strategy = NULL, strategy_set = NULL) {
 
+	# Ambiguity matrix for data types
 	if(is.null(A_w)) A_w <- (get_likelihood_helpers(model)$A_w)[possible_data$event, ]
 
 	w_full = A_w %*% (draw_event_prob(model, parameters = pars, using = "parameters"))
@@ -32,11 +32,12 @@ make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL) {
   if(is.null(strategy)){
 	strategy <- merge(possible_data[,1:2], collapse_data(expand_data(possible_data[, 1:2], model), model), by = "event")$strategy}
 
-	strat_set   <- unique(strategy)
+	if(is.null(strategy_set)) strategy_set <- unique(strategy)
 
 	# Probability of outcomes within each strategy set
+  # Need to be sure about ordering of data
 	x <- apply(dplyr::select(possible_data, - event), 2, function(d)
-		sapply(strat_set, function(j) dmultinom(d[strategy==j],
+		sapply(strategy_set, function(j) dmultinom(d[strategy==j],
 																						prob = w_full[strategy==j])
 		))
 	if(!is.null(nrow(x))) x <- apply(x, 2, prod)

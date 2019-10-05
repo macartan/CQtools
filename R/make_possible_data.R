@@ -1,4 +1,4 @@
-#' Make  data for multi-step strategy
+#' Make data for multi-step strategy
 #'
 #' Creates a database of possible data from a data strategy.
 #' Users can gather additional data on variables specified via \code{vars} for any possible cases in the model ("any"). Or they can
@@ -22,6 +22,7 @@
 #' given <- collapse_data(df, model)[, -2]
 #'
 #' # Look for data on M for all possible cases in the given data
+#' make_possible_data(model, N = 0, within = FALSE)
 #' make_possible_data(model, N = 2, within = FALSE)
 #' make_possible_data(model, given, vars = list("M"), within = TRUE, N = 2)
 #'
@@ -55,6 +56,7 @@
 #'                    within = FALSE,
 #'                    condition =  list(TRUE, "X == 1 & Y == 0"),
 #'                    vars = list(c("X", "Y"), "M"))
+#'
 #'
 #' # From book
 #'
@@ -181,6 +183,7 @@ make_possible_data <- function(model,
 #' given <- collapse_data(df, model, remove_family = TRUE)
 #'
 #' # Look for data on M for all possible cases in the given data
+#' make_possible_data_single(model, N = 0)
 #' make_possible_data_single(model, N = 2)
 #' make_possible_data_single(model, given = given, vars = "M", within = TRUE, N = 2)
 #' make_possible_data_single(model, given = given,
@@ -230,9 +233,13 @@ make_possible_data_single <- function(model,
 																			condition = TRUE,
 																			vars = NULL) {
 
+
 	if(is.null(vars) & within) stop("Please specify vars to be examined")
 
 	if(within & is.null(given)) stop("If 'within' is specified 'given' must be provided")
+
+	if(N==0 & within) return(given)
+	if(N==0 & within) return(gbiqq:::minimal_event_data(model)[, c("event", "count")])
 
 	# If not within simply select possible data
 	if(!within) return(gbiqqtools:::all_possible(model, N, vars) %>% dplyr::select(-count))

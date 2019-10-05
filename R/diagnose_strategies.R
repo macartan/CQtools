@@ -18,20 +18,14 @@
 #'# Example comparing two data strategies with two queries
 #'  rm(list = ls())
 #'	if(!exists("fit")) fit  <- fitted_model()
-#'	reference_model <- NULL
 #'	analysis_model <-
 #'    make_model("X->M->Y")  %>%
 #'    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) %>%
 #'    set_parameter_matrix()
-#' df      <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))
-#' given   <- collapse_data(df, analysis_model, remove_family = TRUE)
+#' given   <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
+#'              collapse_data(analysis_model, remove_family = TRUE)
 #' queries <- list(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]-Y[X=0]")
 #' subsets <- list(TRUE, "Y==1 & X==1") # Subsets for queries
-#' expand_grid <- FALSE  # For queries
-#' estimands_database <- NULL
-#' estimates_database <- NULL
-#' possible_data_list <- NULL
-#' sims <- 20
 #' data_strategies <- list(strategy1 = list(N=1, within = TRUE, vars = "M", conditions = list("Y==1 & X==1")),
 #' 											   strategy2 = list(N=1, within = TRUE, vars = "M", conditions = list("Y==X")))
 #'
@@ -41,7 +35,7 @@
 #'   given = given,
 #'   queries = queries,
 #'   subsets = subsets,
-#'   sims = sims)
+#'   sims = 400)
 
 
 diagnose_strategies <- function(reference_model = NULL,
@@ -57,6 +51,12 @@ diagnose_strategies <- function(reference_model = NULL,
 																possible_data_list = NULL){
 	# Housekeeping
 	if(!exists("fit")) fit  <- fitted_model()
+
+	# Add a strategy with no data at the top of the list
+	data_strategies[["Prior"]] <- list(N=0, within = TRUE, vars = NULL, conditions = list(TRUE))
+	data_strategies <- data_strategies[c(length(data_strategies), 1:(length(data_strategies) - 1))]
+
+	#' make_possible_data(model, N = 2, within = FALSE)
 
 	# 1. REFERENCE MODEL
 	# If not provided, reference model should be the analysis model, updated
@@ -122,16 +122,24 @@ diagnose_strategies <- function(reference_model = NULL,
   # 5 POSSIBLE DATA DISTRIBUTION: FOR EACH STRATEGY nrow(possible_data) * sims matrix of data probabilities
 	##################################################################################################
   ## FLAG: THIS FUNCTION IS THE SLOWEST STEP: HOW TO SPEED UP?
+	## Speed up possible by skipping for the priors strategy as it
 
 	data_probabilities_list <-
 		lapply(possible_data_list, function(possible_data) {
+
+			# Arguments generated one prior to applying apply; FLAG strategy definition is nasty
 			A_w <- (get_likelihood_helpers(reference_model)$A_w)[possible_data$event, ]
+			strategy <- merge(possible_data[,1:2], collapse_data(expand_data(possible_data[, 1:2], reference_model), reference_model), by = "event")$strategy
+			strategy_set <- unique(strategy)
+
 		apply(param_dist, 1, function(pars) {  # FLAG NEEDS TO WORK WITH POSTERIOR ALSO
 		make_data_probabilities(
 			reference_model,
 			pars = pars,
 			possible_data = possible_data,
-			A_w  = A_w )})})
+			A_w  = A_w,
+			strategy = strategy,
+			strategy_set = strategy_set)})})
 
 
 	# 6 ESTIMATES DISTRIBUTION: ESTIMAND FOR EACH QUERY FROM UPDATED DATA
@@ -154,24 +162,21 @@ diagnosis <-
 		mate <- estimates_database[[j]]
 		# Error if each datatype observed  n_query * n_data_possibilities
 		estimate <- sapply(1:length(mate), function(i)  mate[[i]]$mean)
-		error    <- sapply(1:length(mate), function(i) {mate[[i]]$mean - estimands})
-		sq_error <- error^2
 		post_var <- sapply(1:length(mate), function(i) (mate[[i]]$sd)^2)
-
-		prob <- data_probabilities_list[[j]]
+		prob     <- data_probabilities_list[[j]]
 
 		# Return
 		data.frame(
 			strategy = names(data_strategies)[j],
 			estimates_database[[1]][[1]][,1:2],
 			estimand = estimands,
-			estimate = apply(estimate%*%prob, 1, mean),       # Average over draw
-			MSE      = apply(sq_error%*%prob, 1, mean),
+			estimate = apply(estimate%*%prob, 1, mean), # Double averaging: over parameters and data type draw
+			MSE      = apply((estimate%*%prob - (t(estimands_database)[,1:sims]))^2, 1, mean),
 			post_var = apply(post_var%*%prob, 1, mean))
 	})
 
 
-
+# Clean up and export
 diagnosis <- do.call("rbind", diagnosis)
 
 return_list <- list()
@@ -184,7 +189,9 @@ return_list$data_probabilities_list  <-  data_probabilities_list
 return_list
 
 class(return_list) <- c("strategy_diagnoses")
-return(return_list)
+
+return_list
+
 }
 
 ###
