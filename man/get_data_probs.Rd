@@ -15,6 +15,7 @@ get_data_probs(model, data, parameters = NULL)
 }
 \description{
 Takes in a matrix of possible (single case) observations and returns the probability of each.
+FLAG: Some redundancy with make_data_probabilities
 }
 \examples{
 model <- make_model("X->Y")

@@ -11,17 +11,18 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 Depends:
-		R (>= 3.3.0)
+		R (>= 3.3.0),
+		gbiqq,
+		dplyr
 Imports:
     dagitty,
     gtools,
     rstan,
-    dplyr,
     DeclareDesign,
     Rcpp (>= 0.12.16),
     rlang (>= 0.2.0),
     stringr,
-    randomizr
+    partitions
 Remotes: macartan/gbiqq
 Suggests: 
     testthat,

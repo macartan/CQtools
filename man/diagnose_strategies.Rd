@@ -4,19 +4,35 @@
 \alias{diagnose_strategies}
 \title{Diagnose a data strategy}
 \usage{
-diagnose_strategies(reference_model, analysis_model, given, queries,
-  estimates_database = NULL, possible_data = NULL, N = 1,
-  within = FALSE, vars = NULL, conditions = list(TRUE),
-  sims = 1000)
+diagnose_strategies(reference_model = NULL, analysis_model,
+  given = NULL, queries, subsets = TRUE, expand_grid = FALSE,
+  data_strategies = list(strategy1 = list(N = 1, within = TRUE, vars =
+  NULL, conditions = list(TRUE))), sims = 1000,
+  estimands_database = NULL, estimates_database = NULL,
+  possible_data_list = NULL)
 }
 \arguments{
 \item{reference_model}{A causal model as created by \code{make_model}}
 
 \item{analysis_model}{A causal model as created by \code{make_model}}
 
-\item{given}{A data frame with exisitng data}
+\item{given}{A data frame with existing data}
 
-\item{queries}{queries}
+\item{queries}{Vector of causal statements characterizing queries}
+
+\item{subsets}{Vector of statements refining queries}
+
+\item{expand_grid}{Logical, expands grid over query arguments (queries, subsets)}
+
+\item{data_strategies}{list containing arguments for data strategies. For instance \code{list(strategy1 = list(N=1, within = TRUE, vars = NULL, conditions = list(TRUE)))}}
+
+\item{sims}{= 1000,}
+
+\item{estimands_database}{Database of estimands, optional}
+
+\item{estimates_database}{Database of estimates, optional}
+
+\item{possible_data_list}{Database of possible data, optional}
 }
 \value{
 A dataframe
@@ -26,36 +42,33 @@ Diagnose a data strategy
 }
 \examples{
 
-library(dplyr)
-reference_model <- analysis_model <-
+# Example with minimal arguments, assumes search for one case
+diagnose_strategies(
+  analysis_model = make_model("X->Y"),
+  queries = "Y[X=1]==1",
+  sims = 10)
+
+# Example comparing two data strategies with two queries
+ rm(list = ls())
+if(!exists("fit")) fit  <- fitted_model()
+analysis_model <-
    make_model("X->M->Y")  \%>\%
    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()
+given   <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
+             collapse_data(analysis_model, remove_family = TRUE)
+queries <- list(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]-Y[X=0]")
+subsets <- list(TRUE, "Y==1 & X==1") # Subsets for queries
+data_strategies <- list(strategy1 = list(N=1, within = TRUE, vars = "M", conditions = list("Y==1 & X==1")),
+											   strategy2 = list(N=1, within = TRUE, vars = "M", conditions = list("Y==X")))
 
-df    <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))
-given <- collapse_data(df, reference_model, remove_family = TRUE)
-
-reference_model <- gbiqq(reference_model, df)
-
-possible_data <- make_possible_data(model = reference_model,
-                                    given = given,
-                                    within = TRUE,
-                                    condition = "X==1 & Y==1",
-                                    N = 1,
-                                    vars = "M")
-
-queries <- "Y[X=1]>Y[X=0]"
-
-estimates_database <- make_estimates_database(analysis_model,
-                                 given,
-                                 possible_data,
-                                 queries = queries)
-
-diagnose_strategies(reference_model = reference_model,
-                  analysis_model = analysis_model,
-                  given = given,
-                  queries = queries,
-                  estimates_database = estimates_database,
-                  possible_data = possible_data,
-                  sims = 10)
+diagnosis <- diagnose_strategies(
+  analysis_model = analysis_model,
+  data_strategies = data_strategies,
+  given = given,
+  queries = queries,
+  subsets = subsets,
+  sims = 4000)
+diagnosis
+make_possible_data(model, N = 2, within = FALSE)
 }

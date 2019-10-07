@@ -5,35 +5,52 @@
 \title{Generates a database of results using gbiqq over possible data}
 \usage{
 make_estimates_database(model, given, possible_data = NULL,
-  queries = "Y[X=1]>Y[X=0]")
+  queries = "Y[X=1]>Y[X=0]", subsets = TRUE, expand_grid = FALSE,
+  iter = 4000, ...)
 }
 \arguments{
 \item{model}{A causal model as created by \code{make_model}}
 
-\item{possible_data}{A data frame with possible data}
+\item{given}{A compact data frame with observe data}
 
-\item{queries}{Queries}
+\item{possible_data}{A data frame with an events column and possible data columns (if a strategy columns is included it is ignored)}
+
+\item{queries}{list of statements for causal queries}
+
+\item{subsets}{list of statements for subsets for queries}
+
+\item{expand_grid}{logical, If TRUE combinations of queries and subsets are expanded}
+
+\item{iter}{Number of iterations for stan estimation, defaults to 4000}
 }
 \value{
-A dataframe
+A list with query output dataframes for each data strategy
 }
 \description{
-This function runs many models and can take a long time depending on the size of possible data.
+This function can run many models and can take a long time depending on the size of possible data.
 }
 \examples{
-#' library(dplyr)
+library(dplyr)
 model <- make_model("X->M->Y")  \%>\%
-   set_restrictions(causal_type_restrict = "Y[M=1]<Y[M=0] | M[X=1]<M[X=0] ") \%>\%
+   set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()
 
-given = data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))
+given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
+        collapse_data(model, remove_family = TRUE)
 
-possible_data <- make_possible_data(model, given)
+
+possible_data <- make_possible_data(model, given, vars = "M", condition = "X==1 & Y==1")
 
 estimates_database <- make_estimates_database(
       model,
       given = given,
-      possible_data,
+      possible_data = possible_data,
       queries = "Y[X=1]>Y[X=0]")
 
+estimates_database <- make_estimates_database(
+      model,
+      given = given,
+      possible_data = possible_data,
+      queries = c(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]>Y[X=0]"),
+      subsets = c(TRUE, "Y==1 & X==1"))
 }

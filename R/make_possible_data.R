@@ -12,9 +12,8 @@
 #' @param vars A character vector. Variables to be sought or NA. If NA \code{make_possible_data} gathers data on all variables containing NA for the specified data strategy.
 #' @param prefix for columns of output; useful if multiple dataframes are later merged
 #' @export
-#' @return A dataset
+#' @return A dataset with columns: event, strategy, plus possibly multiple cases profiles
 #' @examples
-#' library(dplyr)
 #' model <- make_model("X->M->Y")  %>%
 #'    set_restrictions(c("Y[M=1]<Y[M=0]"), "(M[X=1]<M[X=0] ") %>%
 #'    set_parameter_matrix()
@@ -25,9 +24,14 @@
 #' make_possible_data(model, N = 0, within = FALSE)
 #' make_possible_data(model, N = 2, within = FALSE)
 #' make_possible_data(model, given, vars = list("M"), within = TRUE, N = 2)
+#' make_possible_data(model, given = given, vars = "M", N = 2, condition = c("X==Y"))
+#' make_possible_data(model, given = given, vars = "M", N = list(1,1), condition = list("X==Y", "X==Y"))
 #'
 #' # Not possible:
 #' make_possible_data(model, given, vars = "M", within = TRUE, N = 7)
+#'
+#' # Partly possible: only one step completed
+#' make_possible_data(model, given, vars = list("M", "M"), within = TRUE, N = list(1,1), condition = list("X==Y", "X==Y & M==1"))
 #'
 #' # Within conditions
 #' make_possible_data(model, given, within = TRUE, N = 2, condition = "X==1 & Y==1", vars = "M")
@@ -96,44 +100,25 @@ make_possible_data <- function(model,
 	if(!identical(length(vars), length(N)) )
 		stop("Vars should be of length 1 or else have the same length as conditions  and N")
 
-	g_df <- gbiqqtools:::make_possible_data_single(model,
-																						given = given,
-																						within = within,
-																						N = N[[1]],
-																						condition = condition[[1]],
-																						vars = vars[[1]] )
+	g_df <- gbiqqtools:::make_possible_data_single(
+		model,
+		given = given,
+		within = within,
+		N = N[[1]],
+		condition = condition[[1]],
+		vars = vars[[1]] )
+
 
 	if(length(N) == 1){
 		attr(g_df, "possible_data_args") <- list(N = N,within = within, condition = condition, vars = vars)
-		return(g_df)
+		return(gbiqqtools:::check_event_data(g_df, model))
 	}
 
 
 	for (i in 2:length(N)){
-		possible <-
-			data.frame(select(g_df, event), count = 1) %>%
-			expand_data(model) %>%
-			filter(eval(parse(text = condition[[i]]))) %>%
-			collapse_data(model, remove_family = TRUE)
 
-		# where is searching possible
-		available <- g_df$event %in% possible$event[possible$count>0]
-		use_this  <- g_df[available,] >= N[[i]]
-		if(nrow(use_this) > 1) use_this <- apply(use_this, 2, any)
-		use_data <-  g_df[,use_this]
-
-		# FLAG: Used to figure out relevant set of row labels for admissible events
-		# skip     <-  data.frame(dplyr::select(g_df, event), g_df[,!use_this ])
-		# if(ncol(skip)>1) names(skip)[2:ncol(skip)] <-  names(g_df)[!use_this]
-
-		# Avoid running make_possible_single if there is insufficient data to allocate N
-		if(all(!use_this[2:ncol(g_df)])){
-			message(paste0("Not enough units to allocate N = ",N[[i]], " in step ",i))
-			return(g_df)
-		}
-
-		out <- lapply(2:ncol(use_data), function(s) {
-			use_df <-  use_data[,c(1,s)]
+		out <- lapply(2:ncol(g_df), function(s) {
+			use_df <-  g_df[,c(1,s)]
 			names(use_df)  <- c("event", "count")
 			data_single <- make_possible_data_single(model,
 																							 given = 	use_df,
@@ -147,14 +132,16 @@ make_possible_data <- function(model,
 		})
 
 		out   <- Reduce(function(x, y) merge(x, y,  by = c("event"), all = TRUE), 	out)
-		# out   <- merge( skip, out,  by = c("event"), all = TRUE)
-		# out   <- merge(g_df, out,  by = c("event"), all = TRUE)
 		g_df  <- dplyr:::mutate_if(out, is.numeric, ~replace(., is.na(.), 0))
 
 	}
 
 	if(!is.null(prefix)) names(g_df)[-1] <- paste0(prefix, "_", names(g_df)[-1])
-	return(g_df)
+
+
+	g_df <- check_event_data(g_df, model)
+
+	g_df[,!duplicated(t(g_df))]
 }
 
 
@@ -175,7 +162,6 @@ make_possible_data <- function(model,
 #' @export
 #' @return A dataset
 #' @examples
-#' library(dplyr)
 #' model <- make_model("X->M->Y")  %>%
 #'    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) %>%
 #'    set_parameter_matrix()
@@ -191,8 +177,10 @@ make_possible_data <- function(model,
 #'                           N = 2,
 #'                           condition = "X==1 & Y==1")
 #'
+#' make_possible_data(model, given = given, vars = "M", N = 2, condition = c("X==Y"))
+#'
 #' model <- make_model("X -> M -> Y <- K")  %>%
-#'    set_restrictions(causal_type_restrict = "(Y[M=1, K= .]<Y[M=0, K= .]) | M[X=1]<M[X=0] ") %>%
+#'    set_restrictions(c("(Y[M=1]<Y[M=0])", "(M[X=1]<M[X=0])")) %>%
 #'    set_parameter_matrix()
 #' given <- data.frame(X = c(0,0,0,1,1,1), K = NA,  M = NA, Y = c(0,0,1,0,1,1)) %>%
 #'          collapse_data(model = model, remove_family = TRUE)
@@ -233,7 +221,6 @@ make_possible_data_single <- function(model,
 																			condition = TRUE,
 																			vars = NULL) {
 
-
 	if(is.null(vars) & within) stop("Please specify vars to be examined")
 
 	if(within & is.null(given)) stop("If 'within' is specified 'given' must be provided")
@@ -249,21 +236,17 @@ make_possible_data_single <- function(model,
 
 		all_event_types <- collapse_data(all_data_types(model), model, remove_family = TRUE)
 
-		possible <- get_max_possible_data(model) %>%
-		 filter(eval(parse(text = condition))) %>%
-		 collapse_data(model, remove_family = TRUE)
 
-		A_w      <- get_likelihood_helpers(model)$A_w
+		possible <- all_data_types(model) %>%        # Flag -- check OK with restrictions
+			filter(eval(parse(text = condition)))
+		possible$event <- as.character(possible$event)
 
-		# What is the set of types in which we can seek new data
-		acceptable_bucket <- (A_w %*% possible[,"count"])>0
-		acceptable_bucket <- rownames(acceptable_bucket)[acceptable_bucket]
+		# This part to allow searching in cases where there is space to seek listed vars
+		possible <- possible[apply(possible[vars], 1, function(j) all(is.na(j))),]
 
-		all_buckets <-  mutate(given,
-						 capacity = ifelse(given$event %in% acceptable_bucket, count, 0))
-
+		all_buckets <- left_join(dplyr::select(possible, event), given, by = "event")[c("event", "count")]
+		all_buckets$count[is.na(all_buckets$count)] <-0
 		all_buckets$capacity <- all_buckets$count
-		all_buckets$capacity[!(given$event %in% acceptable_bucket)] <-0
 
 		if(sum(all_buckets$capacity) < N) {message("Not enough units to allocate N"); return(given)}
 		strategies <- as.matrix(partitions::blockparts(all_buckets$capacity, N))
@@ -272,40 +255,74 @@ make_possible_data_single <- function(model,
 
 		# This function goes through a bucket strategy and generates all possible datasets
 		# that could be produced by the strategy
+		##################################################################################
 		get_results_from_strategy <- function(strategy){
 			buckets          <- all_buckets[all_buckets$capacity>0 ,]
-			buckets          <- buckets[buckets[,strategy]>0,]
-			data_list        <- lapply(1:nrow(buckets), function(j)   fill_bucket(model, buckets, vars, row = j, column = strategy))
-			b_names          <- sapply(1:nrow(buckets), function(b_i) (all_buckets$event %in% buckets$event[b_i])*(ncol(data_list[[b_i]])-2))
-			# addresses        <- do.call(rbind, lapply(apply(b_names, 2, perm),function(b)data.frame(b)+1))
-			# addresses        <- apply(addresses, 1, paste, collapse = ".")
-			strategy_results <- Reduce(function(x, y) merge(x, y,  by = "event", all = TRUE), data_list)
-			out              <- merge(given, strategy_results,  by = "event", all = TRUE ) %>%
-				                  dplyr::mutate_at(vars(-c("event", "count")),  list(~ dplyr::coalesce(., count))) %>%
-				                  dplyr::select(-count)
+			buckets          <- buckets[buckets[,strategy]>0, c(1:3, strategy)]
+			data_list        <- lapply(1:nrow(buckets), function(j)   fill_bucket(model, buckets, vars, row = j, column = 4))
+
+    # We need all combinations of columns of datasets in data_list
+		#	strategy_results <- gbiqqtools:::complex_combine(data_list)
+
+    # Remove units that were used to look within
+			to_subtract <- left_join(dplyr::select(given, event), buckets, by= "event")[,c(1,4)]
+			to_subtract[is.na(to_subtract)] <- 0
+
+
+			data_list[["remove_bucket"]] <- data.frame(event = buckets$event, x = -(buckets$capacity))
+			data_list[["given"]] <- given
+
+			out <- gbiqqtools:::complex_combine(data_list)
 
 			colnames(out)[-1] <- paste0(strategy-3, "-", 1:(ncol(out) - 1))
 			out
-
-			# colnames(out)[3:ncol(out)] <- paste0(strategy-3, "-",addresses)
-			# Hack --avoid column names duplicates
-			# dups <- colnames(out)[duplicated(colnames(out))]
-			# l_dups <- length(dups)
-			# if(l_dups > 0) colnames(out)[duplicated(colnames(out))] <- paste0(dups, "_",seq_len(l_dups))
 
 		}
 
 		# Run over all strategies
 		all_strategies <- sapply(4:ncol(all_buckets), function(s) get_results_from_strategy(s),
 														 simplify = FALSE)
-		all_strategies <-	Reduce(function(x, y) merge(x, y,  by = "event", all = TRUE), all_strategies) %>%
-			                mutate_if(is.numeric, ~replace(., is.na(.), 0))
-		possible_data  <- merge(dplyr::select(given, event), all_strategies,  by = "event", all = TRUE)
+		out <- Reduce(function(x, y) merge(x, y,  by = "event", all = TRUE), all_strategies) %>%
+			mutate_if(is.numeric, ~replace(., is.na(.), 0))
 
-		# Add strategies
-		possible_data <- dplyr::select(all_event_types, -count) %>%
-		                 merge(possible_data, by = "event") %>%
- 		                 mutate_if(is.numeric, ~replace(., is.na(.), 0))
+		out$event <- as.character(out$event)
+  	out
 
-	  possible_data
 }
+
+
+#'  Complex combine
+#'
+#'  Used to combine permutations of rows of dataframes in a list
+#'
+#'  @param data_list list of dataframes. All dataframes should contain event column but have unique event elements
+#'  @examples
+#'  data_list <- list(
+#'  data.frame(event = c("a", "b"), w = 1:2, x = 3:4),
+#'  data.frame(event = c("c", "d", "e"), y = 5:7, z = 8:10, q = 11:13))
+#'  complex_combine(data_list)
+#'
+#'  data_list <- list(
+#'  data.frame(event = c("a", "b"), w = 1:2, x = 3:4),
+#'  data.frame(event = c("c", "d", "b"), y = 5:7, z = 8:10, q = 11:13))
+#'  complex_combine(data_list)
+
+
+complex_combine <- function(data_list) {
+
+	locations <- perm(unlist(lapply(data_list, ncol)) - 2)
+
+	dfs <- lapply(1:nrow(locations), function(i) {
+		parts <-  lapply(1:length(data_list), function(j) {
+			df <- data_list[j][[1]][, c(1, locations[i,j][[1]]+2)]
+			names(df) <- c("event", "cases")
+			df
+		})
+		out <- do.call("rbind", parts)
+		out <- aggregate(cases ~ event, data = out, sum)
+		names(out) <- c("event", i)
+		out
+	})
+		Reduce(function(x, y) merge(x, y,  by = "event", all = TRUE), dfs)
+ }
+

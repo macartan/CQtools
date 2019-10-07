@@ -6,6 +6,15 @@
 \usage{
 all_possible(model, N, vars = NULL, condition = TRUE)
 }
+\arguments{
+\item{model}{model made with gbiqq::make_model}
+
+\item{N}{Integer, number of observed cases}
+
+\item{vars}{String vector listing variables observed}
+
+\item{condition}{Statement indicating condition satisfied by observed data}
+}
 \description{
 Helper for getting all data on specified variables with N observed
 }

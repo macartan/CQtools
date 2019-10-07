@@ -11,6 +11,26 @@ allocations <- function(N, n) {
 	x
 }
 
+#' Helper: order event data and add strategy family
+#' @param df dataframe with event data
+#' @param model a model made by make_model
+#' @examples
+#' model <- make_model("X -> M -> Y")
+#' df <- data.frame(M = c(1, NA), X = c(1,1), Y = c(NA,NA)) %>%
+#'  collapse_data(model) %>%
+#'  filter(count == 1)
+#' df
+#' gbiqqtools:::check_event_data(df, model)
+#'
+check_event_data <- function(df, model) {
+	if(!(names(df)[[1]] == "event")) stop("event_data must include an initial `event` column")
+	if("strategy" %in% names(df)) df <- dplyr::select(df, - strategy)
+	structure <- collapse_data(expand_data(df[, 1:2], model), model)[, 1:2]
+	out <- dplyr::left_join(structure, df, by = "event")
+	out[is.na(out)] <- 0
+	out
+	}
+
 
 
 #' helper to fill buckets dataframe
@@ -46,6 +66,10 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 
 #' Helper for getting all data on specified variables with N observed
 #'
+#' @param model model made with gbiqq::make_model
+#' @param N Integer, number of observed cases
+#' @param vars String vector listing variables observed
+#' @param condition Statement indicating condition satisfied by observed data
 #' @examples
 #' model <- make_model("X->M->Y")
 #' gbiqqtools:::all_possible(model, N=2, vars = c("X", "M"))
@@ -66,30 +90,6 @@ all_possible <- function(model, N, vars = NULL, condition = TRUE){
 	out[df$count > 0,] <- as.matrix(possible_data)
 	cbind(df, out)
 }
-
-#' Produces the possible permutations of a set of variables
-#'
-#' @param max A vector of integers indicating the maximum value of an integer value starting at 0. Defaults to 1. The number of permutation is defined by \code{max}'s length
-#' @export
-#' @return A matrix of permutations
-#' @importFrom rlang exprs
-#' @examples
-#'
-#' \dontrun{
-#' perm(3)
-#' }
-# perm <- function(v) {
-# 	sapply(1:length(v), function(x) {
-# 		rep(rep(1:v[x], each = prod(v[x:length(v)])/v[x]), length.out = prod(v))
-# 	}) - 1
-# }
-perm <- function(max = rep(1, 2)){
-	grid <- sapply(max, function(m) exprs(0:!!m))
-	perm <- do.call(expand.grid, grid)
-	colnames(perm) <- NULL
-	perm
-}
-
 
 
 #' Encode data

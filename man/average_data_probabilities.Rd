@@ -4,12 +4,16 @@
 \alias{average_data_probabilities}
 \title{Generates an "average" probability distribution over possible data outcomes}
 \usage{
-average_data_probabilities(model, data_event, using, sims = 500)
+average_data_probabilities(model, possible_data, using, sims = 500)
 }
 \arguments{
 \item{model}{A causal model as created by \code{make_model}}
 
-\item{data_event}{A data frame with event plus one or multiple data columns}
+\item{possible_data}{An events dataframe}
+
+\item{using}{String, indicating `priors` or `posteriors`}
+
+\item{sims}{Integer, number of simulations}
 }
 \value{
 A dataset
@@ -20,8 +24,8 @@ NOTE: This needs to be checked for whether it is taking account of strategy prob
 \examples{
 library(dplyr)
 model <- make_model("X->M->Y")
-possible_data <- make_possible_data(model, vars = list(c("X", "M", "Y")), N= 1, within = FALSE)
-average_data_probabilities(model, possible_data)
+possible_data <- make_possible_data(model, vars = list(c("X", "Y")), N= 1, within = FALSE)
+average_data_probabilities(model, possible_data, using = "priors", sims = 10)
 
 
 }

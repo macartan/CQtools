@@ -1,14 +1,14 @@
-
-
-
-
 #' Generates a database of results using gbiqq over possible data
 #'
-#' This function runs many models and can take a long time depending on the size of possible data.
+#' This function can run many models and can take a long time depending on the size of possible data.
 #'
 #' @param model A causal model as created by \code{make_model}
-#' @param possible_data A data frame with possible data
-#' @param queries Queries
+#' @param given A compact data frame with observe data
+#' @param possible_data A data frame with an events column and possible data columns (if a strategy columns is included it is ignored)
+#' @param queries list of statements for causal queries
+#' @param subsets list of statements for subsets for queries
+#' @param expand_grid logical, If TRUE combinations of queries and subsets are expanded
+#' @param iter Number of iterations for stan estimation, defaults to 4000
 #' @export
 #' @return A list with query output dataframes for each data strategy
 #' @examples
@@ -36,16 +36,19 @@
 #'       queries = c(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]>Y[X=0]"),
 #'       subsets = c(TRUE, "Y==1 & X==1"))
 
-
 make_estimates_database <- function(model,
 																		given,
 																		possible_data = NULL,
 																		queries = "Y[X=1]>Y[X=0]",
 																		subsets = TRUE,
-																		expand_grid = FALSE) {
+																		expand_grid = FALSE,
+																		iter = 4000,
+																		...) {
 
 	if(!exists("fit")) fit  <- fitted_model()
 	if(is.null(possible_data)) possible_data <- make_possible_data(model, given, ...)
+
+	if("strategy" %in% names(possible_data)) possible_data <- dplyr::select(possible_data, -strategy)
 
 
 	## Update model for each possible data type and query updated model
@@ -57,7 +60,7 @@ make_estimates_database <- function(model,
 
 		data <- expand_data(data_events, model)
 
-		updated <- gbiqq::gbiqq(model = model, data = data, stan_model = fit)
+		updated <- gbiqq::gbiqq(model = model, data = data, stan_model = fit, iter = iter)
 
 		data.frame(
 			query_model(updated, queries = queries, using = "posteriors", subset = subsets, expand_grid = expand_grid),

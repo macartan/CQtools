@@ -4,14 +4,21 @@
 \alias{make_data_probabilities}
 \title{Generates a probability distribution over possible data outcomes}
 \usage{
-make_data_probabilities(model, pars, possible_data)
+make_data_probabilities(model, pars, possible_data, A_w = NULL,
+  strategy = NULL, strategy_set = NULL)
 }
 \arguments{
 \item{model}{A causal model as created by \code{make_model}}
 
-\item{given}{A data frame with observations}
+\item{pars}{A parameter vector}
 
-\item{subset}{data strategy}
+\item{possible_data}{Possible events data}
+
+\item{A_w}{Ambiguity matrix for data types, optional}
+
+\item{strategy}{vector providing data strategy set for event, optional}
+
+\item{strategy_set}{vector containing possible strategies, optional}
 }
 \value{
 A dataset
@@ -22,9 +29,8 @@ NOTE: This needs to be checked for whether it is taking account of strategy prob
 \examples{
 
 library(dplyr)
-model <- make_model("X->M->Y")
-
-model <- set_parameters(model, type = "flat")
+model <- make_model("X->M->Y") \%>\%
+         set_parameters(type = "flat")
 possible_data <- make_possible_data(model, N= 2, vars = list(model$variables), within = FALSE)
 make_data_probabilities(model, pars = model$parameters, possible_data)
 

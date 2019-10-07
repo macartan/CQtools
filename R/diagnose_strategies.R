@@ -3,16 +3,22 @@
 #' @param reference_model A causal model as created by \code{make_model}
 #' @param analysis_model A causal model as created by \code{make_model}
 #' @param given A data frame with existing data
-#' @param queries queries
+#' @param queries Vector of causal statements characterizing queries
+#' @param subsets Vector of statements refining queries
+#' @param expand_grid Logical, expands grid over query arguments (queries, subsets)
+#' @param data_strategies list containing arguments for data strategies. For instance \code{list(strategy1 = list(N=1, within = TRUE, vars = NULL, conditions = list(TRUE)))}
+#' @param sims = 1000,
+#' @param estimands_database Database of estimands, optional
+#' @param estimates_database Database of estimates, optional
+#' @param possible_data_list Database of possible data, optional
 #' @export
 #' @return A dataframe
 #' @examples
 #'
-#' library(dplyr)
 #' # Example with minimal arguments, assumes search for one case
 #' diagnose_strategies(
-#'   analysis_model = analysis_model,
-#'   queries = queries,
+#'   analysis_model = make_model("X->Y"),
+#'   queries = "Y[X=1]==1",
 #'   sims = 10)
 #'
 #'# Example comparing two data strategies with two queries
@@ -35,7 +41,8 @@
 #'   given = given,
 #'   queries = queries,
 #'   subsets = subsets,
-#'   sims = 400)
+#'   sims = 4000)
+#' diagnosis
 
 
 diagnose_strategies <- function(reference_model = NULL,
@@ -50,11 +57,12 @@ diagnose_strategies <- function(reference_model = NULL,
 																estimates_database = NULL,
 																possible_data_list = NULL){
 	# Housekeeping
-	if(!exists("fit")) fit  <- fitted_model()
+	if(!exists("fit")) fit  <- gbiqq::fitted_model()
+  iter = max(sims, 4000)
 
 	# Add a strategy with no data at the top of the list
 	data_strategies[["Prior"]] <- list(N=0, within = TRUE, vars = NULL, conditions = list(TRUE))
-	data_strategies <- data_strategies[c(length(data_strategies), 1:(length(data_strategies) - 1))]
+	# data_strategies <- data_strategies[c(length(data_strategies), 1:(length(data_strategies) - 1))]
 
 	#' make_possible_data(model, N = 2, within = FALSE)
 
@@ -66,7 +74,7 @@ diagnose_strategies <- function(reference_model = NULL,
 		  reference_model <- analysis_model
 		} else {
 			data <- expand_data(given, analysis_model)
-		  reference_model <- gbiqq(analysis_model, data, stan_model = fit)
+		  reference_model <- gbiqq(analysis_model, data, stan_model = fit, iter = iter)
 	}}
 
 	# 2. REFERENCE PARAMETERS DISTRIBUTION
@@ -82,10 +90,7 @@ diagnose_strategies <- function(reference_model = NULL,
 			stop("model contains priors distribution with too few parameter draws")}}
 
 		if(is.null(reference_model$prior_distribution)) reference_model <-  set_prior_distribution(reference_model, sims)
-		param_dist <- reference_model$prior_distribution
-
-
-	} else {
+		param_dist <- reference_model$prior_distribution} else {
 
 		using <- "posteriors"
 		param_dist <- (rstan::extract(reference_model$posterior, pars= "lambdas")$lambdas)[1:sims,]
@@ -125,21 +130,26 @@ diagnose_strategies <- function(reference_model = NULL,
 	## Speed up possible by skipping for the priors strategy as it
 
 	data_probabilities_list <-
-		lapply(possible_data_list, function(possible_data) {
+		lapply(possible_data_list[-length(possible_data_list)], function(possible_data) {
 
 			# Arguments generated one prior to applying apply; FLAG strategy definition is nasty
 			A_w <- (get_likelihood_helpers(reference_model)$A_w)[possible_data$event, ]
-			strategy <- merge(possible_data[,1:2], collapse_data(expand_data(possible_data[, 1:2], reference_model), reference_model), by = "event")$strategy
-			strategy_set <- unique(strategy)
+			strategy     <- possible_data$strategy
+			strategy_set <- unique(possible_data$strategy)
 
-		apply(param_dist, 1, function(pars) {  # FLAG NEEDS TO WORK WITH POSTERIOR ALSO
-		make_data_probabilities(
-			reference_model,
-			pars = pars,
-			possible_data = possible_data,
-			A_w  = A_w,
-			strategy = strategy,
-			strategy_set = strategy_set)})})
+		apply(param_dist, 1, function(pars) {
+			make_data_probabilities(
+				reference_model,
+				pars = pars,
+				possible_data = possible_data,
+				A_w  = A_w,
+				strategy = strategy,
+				strategy_set = strategy_set)}
+			)
+		})
+
+	# For prior existing data is certain
+	data_probabilities_list[["prior"]] <- rep(1, sims)
 
 
 	# 6 ESTIMATES DISTRIBUTION: ESTIMAND FOR EACH QUERY FROM UPDATED DATA
@@ -147,8 +157,13 @@ diagnose_strategies <- function(reference_model = NULL,
 	if(is.null(estimates_database)) {
 		estimates_database <- lapply(possible_data_list, function(possible_data){
 
-		        make_estimates_database(analysis_model, given = given, possible_data = possible_data,
-														queries = queries, subsets = subsets, expand_grid = expand_grid)
+		        make_estimates_database(analysis_model,
+		        												given = given,
+		        												possible_data = dplyr::select(possible_data, -strategy),
+														        queries = queries,
+		        												subsets = subsets,
+		        												expand_grid = expand_grid,
+		        												iter = iter)
 		})
 	}
 
@@ -176,7 +191,8 @@ diagnosis <-
 	})
 
 
-# Clean up and export
+# Clean up and export: Put priors in front and bind
+diagnosis <- diagnosis[c(length(diagnosis), 1:(length(diagnosis) - 1))]
 diagnosis <- do.call("rbind", diagnosis)
 
 return_list <- list()

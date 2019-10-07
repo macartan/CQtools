@@ -29,7 +29,6 @@ Users can gather additional data on variables specified via \code{vars} for any 
 gather data in all cases within a given dataset ("within"). Or they can specify  the subset of cases for which within-case data should be collected (e.g. "Y == 1").
 }
 \examples{
-library(dplyr)
 model <- make_model("X->M->Y")  \%>\%
    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()
@@ -37,6 +36,7 @@ df <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))
 given <- collapse_data(df, model, remove_family = TRUE)
 
 # Look for data on M for all possible cases in the given data
+make_possible_data_single(model, N = 0)
 make_possible_data_single(model, N = 2)
 make_possible_data_single(model, given = given, vars = "M", within = TRUE, N = 2)
 make_possible_data_single(model, given = given,
@@ -44,8 +44,10 @@ make_possible_data_single(model, given = given,
                           N = 2,
                           condition = "X==1 & Y==1")
 
+make_possible_data(model, given = given, vars = "M", N = 2, condition = c("X==Y"))
+
 model <- make_model("X -> M -> Y <- K")  \%>\%
-   set_restrictions(causal_type_restrict = "(Y[M=1, K= .]<Y[M=0, K= .]) | M[X=1]<M[X=0] ") \%>\%
+   set_restrictions(c("(Y[M=1]<Y[M=0])", "(M[X=1]<M[X=0])")) \%>\%
    set_parameter_matrix()
 given <- data.frame(X = c(0,0,0,1,1,1), K = NA,  M = NA, Y = c(0,0,1,0,1,1)) \%>\%
          collapse_data(model = model, remove_family = TRUE)
