@@ -43,7 +43,18 @@
 #'   subsets = subsets,
 #'   sims = 4000)
 #' diagnosis
-
+#'
+#' # Wide or deep
+#' model <- make_model("K-> X -> Y <- K")
+#' data_strategies = list(
+#' 		N4L0 =  list(N=4, withins = FALSE, vars = list(c("X", "Y")), conditions = TRUE),
+#' 		N2L2 =  list(N=2, withins = FALSE, vars = list(c("X", "K", "Y")), conditions = TRUE),
+#' 		N3L1 =  list(N=list(1,2), withins = FALSE, vars = list(c("X", "K", "Y"), c("X", "Y")), conditions = TRUE))
+#'
+#' 	possible_data_list = lapply(data_strategies, function(ds)
+#' 		with(ds, make_possible_data(model = model, given = NULL,
+#' 		N = N, withins = withins, conditions = conditions, vars = vars)))
+#' lapply(possible_data_list, length)
 
 diagnose_strategies <- function(reference_model = NULL,
 																analysis_model,
