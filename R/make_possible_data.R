@@ -81,10 +81,13 @@ make_possible_data <- function(model,
 
 	if(is.null(vars)) vars <- list(model$variables)
 
+	if(is.null(given)) given <- gbiqq:::minimal_event_data(model)
+
+	if("strategy" %in% names(given)) given <- dplyr::select(given, - strategy)
+
 	if(!is.null(given)) if(!identical(names(given), c("event", "count"))){
 		stop("'given' df should have two columns: event and count")}
 
-	if(is.null(given)) given <- gbiqq:::minimal_event_data(model)[,-2]
 
 	if(length(vars)==1 & (length(N)>1)) vars <- rep(vars, length(N))
 	if(length(withins)==1 & (length(N)>1)) withins <- rep(withins, length(N))
@@ -212,7 +215,8 @@ make_possible_data_single <- function(model,
 	all_buckets$count[is.na(all_buckets$count)] <-0
 	all_buckets <- mutate(all_buckets, capacity = count)
 
-	if(sum(all_buckets$capacity) < N) {message("Not enough units to allocate N"); return(given)}
+	if(sum(all_buckets$capacity) < N) {message("Not enough units to allocate N.
+																						 Perhaps you are seeking data within cases in which data is already observed?"); return(given)}
 
 	strategies <- as.matrix(partitions::blockparts(all_buckets$capacity, N))
 		colnames(strategies) <- 1:ncol(strategies)
