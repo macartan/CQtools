@@ -6,15 +6,25 @@
 #' @param queries Vector of causal statements characterizing queries
 #' @param subsets Vector of statements refining queries
 #' @param expand_grid Logical, expands grid over query arguments (queries, subsets)
-#' @param data_strategies list containing arguments for data strategies. For instance \code{list(strategy1 = list(N=1, within = TRUE, vars = NULL, conditions = list(TRUE)))}
+#' @param data_strategies list containing arguments for data strategies.
+#' For instance \code{list(strategy1 = list(N=1, withins = TRUE, vars = NULL, conditions = list(TRUE)))}
+#' @param use_parameters Logical, defaulting to FALSE. If TRUE use   parameter vector rather than priors/posteriors.
+#' Used in process tracing problems with a single case.
+#' In this case the estimand is taken to be case level and is drawn  *conditional on case data*,
+#' and the posterior variance is defined on the type, not the parameter (which is known, after all).
 #' @param sims = 1000,
-#' @param estimands_database Database of estimands, optional
-#' @param estimates_database Database of estimates, optional
-#' @param possible_data_list Database of possible data, optional
+#' @param estimands_database Database of estimands, optional, for speed
+#' @param estimates_database Database of estimates, optional, for speed
+#' @param possible_data_list Database of possible data, optional, for speed
 #' @export
 #' @return A dataframe
 #' @examples
 #'
+#' # Example using parameters and  minimal arguments, assumes search for one case
+#' diagnosis <- diagnose_strategies(
+#'   analysis_model = make_model("X->Y"),
+#'   queries = "Y[X=1]==1",
+#'   use_parameters = TRUE)
 #' # Example with minimal arguments, assumes search for one case
 #' diagnose_strategies(
 #'   analysis_model = make_model("X->Y"),
@@ -32,8 +42,8 @@
 #'              collapse_data(analysis_model, remove_family = TRUE)
 #' queries <- list(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]-Y[X=0]")
 #' subsets <- list(TRUE, "Y==1 & X==1") # Subsets for queries
-#' data_strategies <- list(strategy1 = list(N=1, within = TRUE, vars = "M", conditions = list("Y==1 & X==1")),
-#' 											   strategy2 = list(N=1, within = TRUE, vars = "M", conditions = list("Y==X")))
+#' data_strategies <- list(strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = list("Y==1 & X==1")),
+#' 											   strategy2 = list(N=1, withins = TRUE, vars = "M", conditions = list("Y==X")))
 #'
 #' diagnosis <- diagnose_strategies(
 #'   analysis_model = analysis_model,
@@ -62,26 +72,27 @@ diagnose_strategies <- function(reference_model = NULL,
 																queries,
 																subsets = TRUE, # Subsets for queries
 																expand_grid = FALSE, # For queries
-																data_strategies = list(strategy1 = list(N=1, within = TRUE, vars = NULL, conditions = list(TRUE))),
+																data_strategies = list(strategy1 = list(N=1, withins = TRUE, vars = NULL, conditions = list(TRUE))),
 																sims = 1000,
+																use_parameters = FALSE,
 																estimands_database = NULL,
 																estimates_database = NULL,
 																possible_data_list = NULL){
 	# Housekeeping
-	if(!exists("fit")) fit  <- gbiqq::fitted_model()
+	if(!exists("fit") & !(use_parameters)) fit  <- gbiqq::fitted_model()
   iter = max(sims, 4000)
 
-	# Add a strategy with no data at the top of the list
-	data_strategies[["Prior"]] <- list(N=0, within = TRUE, vars = NULL, conditions = list(TRUE))
-	# data_strategies <- data_strategies[c(length(data_strategies), 1:(length(data_strategies) - 1))]
+  if(use_parameters) sims <- 1  # If parameters are used there is no simulation
 
-	#' make_possible_data(model, N = 2, within = FALSE)
+	# Add a strategy with no data at the top of the list
+	data_strategies[["Prior"]] <- list(N=0, withins = FALSE, vars = NULL, conditions = list(TRUE))
+	# data_strategies <- data_strategies[c(length(data_strategies), 1:(length(data_strategies) - 1))]
 
 	# 1. REFERENCE MODEL
 	# If not provided, reference model should be the analysis model, updated
 	if(is.null(reference_model)) {
 
-		if(is.null(given)) {
+		if(is.null(given) | use_parameters) {
 		  reference_model <- analysis_model
 		} else {
 			data <- expand_data(given, analysis_model)
@@ -90,6 +101,11 @@ diagnose_strategies <- function(reference_model = NULL,
 
 	# 2. REFERENCE PARAMETERS DISTRIBUTION
 	#########################################
+	if(use_parameters) {
+
+		using <- "parameters"
+		param_dist <- data.frame(t(get_parameters(reference_model)))
+	} else {
 
 	if(is.null(given) | is.null(reference_model$posterior_distribution)) {
 		using <- "priors"
@@ -106,14 +122,14 @@ diagnose_strategies <- function(reference_model = NULL,
 		using <- "posteriors"
 		param_dist <- (rstan::extract(reference_model$posterior, pars= "lambdas")$lambdas)[1:sims,]
 
-	}
+	}}
 
 
 	# 3 ESTIMANDS DATABASE: If not provided, this gets generated using reference model and queries
 	##################################################################################
 
 	if(is.null(estimands_database)) {
-	# Distribution of causal types
+	# Distribution of causal types (just one draw if parameters = TRUE)
 		type_distribution <- draw_type_prob_multiple(reference_model, using = using)
 
 	# sims * length(queries) matrix of estimands
@@ -132,7 +148,7 @@ diagnose_strategies <- function(reference_model = NULL,
 
 			possible_data_list = lapply(data_strategies, function(ds)
 				                     with(ds,
-				                     		 make_possible_data(model = reference_model, given = given, N = N, within = within, condition = conditions, vars = vars)))
+				                     		 make_possible_data(model = reference_model, given = given, N = N, withins = withins, conditions = conditions, vars = vars)))
 		}
 
   # 5 POSSIBLE DATA DISTRIBUTION: FOR EACH STRATEGY nrow(possible_data) * sims matrix of data probabilities
@@ -174,16 +190,17 @@ diagnose_strategies <- function(reference_model = NULL,
 														        queries = queries,
 		        												subsets = subsets,
 		        												expand_grid = expand_grid,
-		        												iter = iter)
+		        												iter = iter,
+		        												use_parameters = use_parameters)
 		})
 	}
 
   # 7 MAGIC: Calculate diagnostics for each data strategy
 	##################################################################################################
-	estimands <- apply(estimands_database, 2, mean)
+	estimands <- apply(data.frame(estimands_database), 2, mean)
 
 diagnosis <-
-	lapply(1:length(estimates_database), function(j) {
+	lapply(1:length(estimates_database), function(j) { # applied over each strategy, inlcuding prior
 
 		mate <- estimates_database[[j]]
 		# Error if each datatype observed  n_query * n_data_possibilities
@@ -192,13 +209,20 @@ diagnosis <-
 		prob     <- data_probabilities_list[[j]]
 
 		# Return
-		data.frame(
+		df <- data.frame(
 			strategy = names(data_strategies)[j],
-			estimates_database[[1]][[1]][,1:2],
+			estimates_database[[1]][[1]][,c("Query", "Subset")],    # This picks up query and subset labels
 			estimand = estimands,
-			estimate = apply(estimate%*%prob, 1, mean), # Double averaging: over parameters and data type draw
-			MSE      = apply((estimate%*%prob - (t(estimands_database)[,1:sims]))^2, 1, mean),
-			post_var = apply(post_var%*%prob, 1, mean))
+			estimates= apply(estimate%*%prob, 1, mean) # Double averaging: over parameters and data type draw
+      )
+
+		if(use_parameters)   df$post_var= (abs(df$estimate))*(1 - (abs(df$estimate))) # p(1-p) for probability of type
+
+		if(!use_parameters)  {
+			df$MSE      = apply((estimate%*%prob - (t(estimands_database)[,1:sims]))^2, 1, mean)
+			df$post_var = apply(post_var%*%prob, 1, mean)}
+
+		df
 	})
 
 
@@ -221,7 +245,9 @@ return_list
 
 }
 
-###
+### NOTE TO SELF
+## EPXETED POSTERIOR VARIANCE WHEN PARAMETERS = TRUE HAS TO BE ON THE *CASE* LEVEL VARIANCE NOT HTE PARAMETER VARIANCE, WHICH WILL BE 0!
+
 
 #' @export
 print.strategy_diagnoses <- function(x, ...) {

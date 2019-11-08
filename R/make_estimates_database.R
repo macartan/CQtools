@@ -43,12 +43,28 @@ make_estimates_database <- function(model,
 																		subsets = TRUE,
 																		expand_grid = FALSE,
 																		iter = 4000,
+																		use_parameters = FALSE,
 																		...) {
 
-	if(!exists("fit")) fit  <- fitted_model()
-	if(is.null(possible_data)) possible_data <- make_possible_data(model, given, ...)
 
+	if(is.null(possible_data)) possible_data <- make_possible_data(model, given, ...)
 	if("strategy" %in% names(possible_data)) possible_data <- dplyr::select(possible_data, -strategy)
+
+	if(use_parameters){
+	return(
+		lapply(2:ncol(possible_data), function(j) {
+
+		data.frame(
+			query_model(model, queries = queries, using = "parameters", subset = subsets, expand_grid = expand_grid),
+			data_pattern = j -1
+		)})
+		)
+	  }
+
+
+	# If parameters not used then model is updated using gbiqq
+
+	if(!exists("fit")) fit  <- fitted_model()
 
 
 	## Update model for each possible data type and query updated model

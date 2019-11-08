@@ -81,13 +81,16 @@ make_possible_data <- function(model,
 
 	if(is.null(vars)) vars <- list(model$variables)
 
-	if(is.null(given)) given <- gbiqq:::minimal_event_data(model)
 
-	if("strategy" %in% names(given)) given <- dplyr::select(given, - strategy)
+	if(is.null(given) & withins[1]) {message("No data given; 'withins' changed to FALSE"); withins[1] <- FALSE}
+
 
 	if(!is.null(given)) if(!identical(names(given), c("event", "count"))){
 		stop("'given' df should have two columns: event and count")}
 
+	if(is.null(given)) given <- gbiqq:::minimal_event_data(model)
+
+	if("strategy" %in% names(given)) given <- dplyr::select(given, - strategy)
 
 	if(length(vars)==1 & (length(N)>1)) vars <- rep(vars, length(N))
 	if(length(withins)==1 & (length(N)>1)) withins <- rep(withins, length(N))
@@ -96,7 +99,6 @@ make_possible_data <- function(model,
 		stop("N, and conditions  must have the same length")
 
 
-	if(is.null(given) & withins[1]) {message("No data given; 'withins' changed to FALSE"); withins[1] <- FALSE}
 
 		if(!identical(length(vars), length(N)) )
 		stop("Vars should be of length 1 or else have the same length as conditions  and N")
