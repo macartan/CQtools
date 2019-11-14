@@ -13,13 +13,11 @@
 #' get_data_probs(model, data)
 get_data_probs <- function(model, data, parameters = NULL){
 
-	if(is.null(parameters)) {
-		if(is.null(model$parameters)) stop("parameters not provided")
-		parameters <- model$parameters }
+	if(is.null(parameters)) parameters <- get_parameters(model)
 
 	# events  <- collapse_data(data = data, model = model)$event
-	A_w     <- get_likelihood_helpers(model)$A_w
-	probs   <- A_w %*% draw_event_prob(model, parameters = parameters)
+	A_w     <- get_data_families(model, mapping_only = TRUE)
+	probs   <- A_w %*% get_event_prob(model, parameters = parameters)
 	np      <- rownames(probs)
 	unlist(sapply(encode_data(model, data), function(j) probs[np==j]))
 }

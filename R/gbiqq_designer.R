@@ -55,14 +55,14 @@ gbiqq_designer <- function(
 	answer_strat = NULL
 ) {
 
-	answer_model <- model <- 	model %>%
+	answer_model <- model %>%
 		set_restrictions(restrictions) %>%
-		set_priors(prior_distribution = priors) %>%
+		set_priors(distribution = priors) %>%
 		set_prior_distribution()
 
-	if(!is.null(answer_strat)) answer_model <- set_priors(prior_distribution = answer_strat) %>% # Need to be generalized
+	if(!is.null(answer_strat)) answer_model <- answer_model %>%
+			set_priors(distribution = answer_strat) %>% # Need to be generalized
 			set_prior_distribution()
-
 
 	if(is.null(parameters)) {message("No true parameters provided; parameters drawn from prior on each run")}
 

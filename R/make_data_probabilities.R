@@ -15,7 +15,7 @@
 #' library(dplyr)
 #' model <- make_model("X->M->Y") %>%
 #'          set_parameters(type = "flat")
-#' possible_data <- make_possible_data(model, N= 2, vars = list(model$variables), within = FALSE)
+#' possible_data <- make_possible_data(model, N= 2, vars = list(model$node), within = FALSE)
 #' make_data_probabilities(model, pars = model$parameters, possible_data)
 #'
 #' given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
@@ -34,7 +34,7 @@ make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, str
 	# Ambiguity matrix for data types
 	if(is.null(A_w)) A_w <- (get_likelihood_helpers(model)$A_w)[possible_data$event, ]
 
-	w_full = A_w %*% (draw_event_prob(model, parameters = pars, using = "parameters"))
+	w_full = A_w %*% (get_event_prob(model, parameters = pars, using = "parameters"))
 
   if(is.null(strategy)){strategy <- possible_data$strategy}
 	if(is.null(strategy_set)) strategy_set <- unique(strategy)

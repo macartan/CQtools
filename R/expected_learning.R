@@ -5,7 +5,7 @@
 #' @param model A  model
 #' @param parameters a parameter vector
 #' @param query A query as a character string, for example 'Y[X=1]>Y[X=0]'
-#' @param strategy A set of variables to be sought
+#' @param strategy A set of node to be sought
 #' @param given A conditioning set as a character string that evaluates to a logical, for example 'Y==1'
 #' @importFrom  stringr str_extract_all boundary
 #' @importFrom dplyr mutate filter
@@ -14,9 +14,7 @@
 #' # Reduction in variance given monotonic X -> M1 -> M2 -> Y model
 #' library(dplyr)
 #' model <- make_model("X -> M1 -> M2 -> Y") %>%
-#'   set_restrictions(node_restrict = list(M1 = "10", M2 = "10", Y = "10")) %>%
-#'   set_priors() %>%
-#'   set_parameters(type = 'flat')
+#'   set_restrictions(labels = list(M1 = "10", M2 = "10", Y = "10"))
 #' el <- expected_learning(model, query = "Y[X=1]>Y[X=0]",
 #'                   strategy = c("X", "M2"), given = "Y==1")
 #' attr(el, "results_table")
@@ -52,10 +50,10 @@
 
 expected_learning <- function(model, query, strategy = NULL, given = NULL, parameters = NULL){
 
-		vars <- model$variables
+		vars <- model$node
 		given0 <- ifelse(is.null(given), " ", given)
 
-		# Figure out which variables are given
+		# Figure out which node are given
 		given_vars <- NULL
 		if(!is.null(given)) {
 			given_vars <- str_extract_all(given, boundary("word"))[[1]]

@@ -44,7 +44,7 @@ check_event_data <- function(df, model) {
 #' fill_bucket(model, buckets, vars = "M")
 fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 
-	if(!(all(vars %in% model$variables))) stop("Vars not in model$variables")
+	if(!(all(vars %in% model$node))) stop("Vars not in model$node")
 
 	# Figure out set of possible finer units
 	df <- expand_data(data_events = data.frame(
@@ -64,11 +64,11 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 }
 
 
-#' Helper for getting all data on specified variables with N observed
+#' Helper for getting all data on specified node with N observed
 #'
 #' @param model model made with gbiqq::make_model
 #' @param N Integer, number of observed cases
-#' @param vars String vector listing variables observed
+#' @param vars String vector listing node observed
 #' @param condition Statement indicating condition satisfied by observed data
 #' @examples
 #' model <- make_model("X->M->Y")
@@ -76,7 +76,7 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 #' gbiqqtools:::all_possible(model, N=2, vars = c("X", "Y"), condition = "Y==0")
 all_possible <- function(model, N, vars = NULL, condition = TRUE){
 
-	if(is.null(vars)) vars <- model$variables
+	if(is.null(vars)) vars <- model$node
 
 	df <- get_max_possible_data(model) %>% filter(eval(parse(text = condition)))
 
@@ -108,7 +108,7 @@ all_possible <- function(model, N, vars = NULL, condition = TRUE){
 #' encode_data(model, data)
 encode_data <- function(model, data){
 	data[data ==""] <- NA
-	vars <- model$variables
+	vars <- model$node
 	apply(data, MARGIN = 1, FUN = function(row){
 		paste0(vars[!(is.na(row))],row[!(is.na(row))], collapse = "")})
 }
