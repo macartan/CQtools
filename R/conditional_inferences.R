@@ -35,9 +35,14 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 	vars <- model$node
 
 	# Possible data
-	vals <- data.frame(perm(rep(2,length(model$node)))) - 1
-	vals[vals ==-1] <- NA
-	names(vals) <- vars
+	# vals <- data.frame(perm(rep(2,length(model$node)))) - 1
+	# vals[vals ==-1] <- NA
+	# names(vals) <- vars
+
+	vals <-  all_data_types(model)
+	rownames(vals) <- vals$event
+	vals <- select(vals, - event)
+
 	if(!is.null(given)) vals <- dplyr::filter(vals, eval(parse(text = given)))
 
 	# Conditions
@@ -53,16 +58,18 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 		queries = query,
 		subsets = subsets)$mean
 
+	vals <- filter(vals, !is.na(estimands))
+	estimands <- estimands[!is.na(estimands)]
 	probs <- unlist(get_data_probs(model, data = vals))
 
 	# hack to deal with fact that get_data_probs returns missing if all NAs
-	p <- allNAs <- apply(vals, 1, function(j) all(is.na(j)))
-	p[p] <- 1
-	p[!p] <- probs
+	#p <- allNAs <- apply(vals, 1, function(j) all(is.na(j)))
+	#p[p] <- 1
+	#p[!p] <- probs
 
-	out <- data.frame(cbind(vals, estimands, p))
+	out <- data.frame(cbind(vals, estimands, probs))
 
 	names(out) <- c(vars, "posterior", "prob")
-	rownames(out) <- NULL
+#	rownames(out) <- NULL
 	data.frame(out)
 }
