@@ -15,10 +15,8 @@
 #' conditional_inferences(model, query = "Y[X=1]>Y[X=0]")
 #'
 #' # Example of posteriors given monotonic X -> M -> Y model
-#' library(dplyr)
 #' model <- make_model("X-> M -> Y")  %>%
-#'   set_restrictions(labels = list(M = "10", Y = "10")) %>%
-#'   set_parameters(type = "flat")
+#'   set_restrictions(labels = list(M = "10", Y = "10"))
 #' conditional_inferences(model, query = "Y[X=1]>Y[X=0]", given = "Y==1")
 #'
 #' # Running example
@@ -35,22 +33,20 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 	vars <- model$node
 
 	# Possible data
-	# vals <- data.frame(perm(rep(2,length(model$node)))) - 1
-	# vals[vals ==-1] <- NA
-	# names(vals) <- vars
-
-	vals <-  all_data_types(model)
-	rownames(vals) <- vals$event
-	vals <- select(vals, - event)
-
-	if(!is.null(given)) vals <- dplyr::filter(vals, eval(parse(text = given)))
+	vals <-  all_data_types(model, given = given) %>% select(-event)
 
 	# Conditions
 	conds <- t(apply(vals, 1, function(j) paste(vars, j, sep = "==")))
 	conds[is.na(vals)] <- NA
 	subsets <- apply(conds, 1, function(j) paste(j[!is.na(j)], collapse = " & "))
 	subsets <- as.list(subsets)
-	subsets[subsets==""] <- TRUE
+	subsets[subsets==""] <- paste0(model$nodes[1], ">-1") # Guaranteed true
+
+	impossible <- lapply(subsets, function(s) all(!(get_query_types(model, s)$types))) %>% unlist
+	vals     <- vals[!impossible, ]
+	subsets  <- subsets[!impossible]
+
+	# Calculate estimands
 	estimands <- query_model(
 		model   = model,
 		parameters  = parameters,
@@ -58,18 +54,12 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 		queries = query,
 		subsets = subsets)$mean
 
-	vals <- filter(vals, !is.na(estimands))
-	estimands <- estimands[!is.na(estimands)]
+	# Cac=lculate data probabilities
 	probs <- unlist(get_data_probs(model, data = vals))
-
-	# hack to deal with fact that get_data_probs returns missing if all NAs
-	#p <- allNAs <- apply(vals, 1, function(j) all(is.na(j)))
-	#p[p] <- 1
-	#p[!p] <- probs
 
 	out <- data.frame(cbind(vals, estimands, probs))
 
 	names(out) <- c(vars, "posterior", "prob")
-#	rownames(out) <- NULL
+
 	data.frame(out)
 }

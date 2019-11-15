@@ -109,7 +109,9 @@ all_possible <- function(model, N, vars = NULL, condition = TRUE){
 encode_data <- function(model, data){
 	data[data ==""] <- NA
 	vars <- model$node
-	apply(data, MARGIN = 1, FUN = function(row){
+	out <- apply(data, MARGIN = 1, FUN = function(row){
 		paste0(vars[!(is.na(row))],row[!(is.na(row))], collapse = "")})
+	out[out == ""] <- "None"
+	out
 }
 
