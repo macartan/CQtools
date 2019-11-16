@@ -31,7 +31,7 @@ NOTE: This needs to be checked for whether it is taking account of strategy prob
 library(dplyr)
 model <- make_model("X->M->Y") \%>\%
          set_parameters(type = "flat")
-possible_data <- make_possible_data(model, N= 2, vars = list(model$variables), within = FALSE)
+possible_data <- make_possible_data(model, N= 2, vars = list(model$node), within = FALSE)
 make_data_probabilities(model, pars = model$parameters, possible_data)
 
 given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%

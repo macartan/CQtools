@@ -6,7 +6,7 @@
 \usage{
 make_estimates_database(model, given, possible_data = NULL,
   queries = "Y[X=1]>Y[X=0]", subsets = TRUE, expand_grid = FALSE,
-  iter = 4000, ...)
+  iter = 4000, use_parameters = FALSE, ...)
 }
 \arguments{
 \item{model}{A causal model as created by \code{make_model}}

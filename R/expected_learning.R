@@ -56,7 +56,7 @@ expected_learning <- function(model, query, strategy = NULL, given = NULL, param
 		# Figure out which node are given
 		given_vars <- NULL
 		if(!is.null(given)) {
-			given_vars <- str_extract_all(given, boundary("word"))[[1]]
+			given_vars <- stringr:::str_extract_all(given, boundary("word"))[[1]]
 			given_vars <- given_vars[(given_vars %in% vars)]}
 
 		# All strategy vars need to be seen

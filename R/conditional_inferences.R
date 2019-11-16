@@ -23,6 +23,7 @@
 #' model <- make_model("S -> C -> Y <- R <- X; X -> C -> R") %>%
 #'    set_restrictions(labels =
 #'    list(C = "C1110", R = "R0001", Y = "Y0001"), keep = TRUE)
+#'
 #' conditional_inferences(model, query = list(COE = "(Y[S=0] > Y[S=1])"),
 #' given = "Y==1 & S==0")
 
@@ -30,7 +31,7 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 
 	if(is.null(parameters)) parameters <- get_parameters(model)
 
-	vars <- model$node
+	vars <- model$nodes
 
 	# Possible data
 	vals <-  all_data_types(model, given = given) %>% select(-event)
@@ -43,8 +44,12 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 	subsets[subsets==""] <- paste0(model$nodes[1], ">-1") # Guaranteed true
 
 	impossible <- lapply(subsets, function(s) all(!(get_query_types(model, s)$types))) %>% unlist
+
+	if(all(impossible)) return(data.frame(vars, posterior = NA, prob = NA))
+
 	vals     <- vals[!impossible, ]
 	subsets  <- subsets[!impossible]
+
 
 	# Calculate estimands
 	estimands <- query_model(

@@ -17,7 +17,7 @@ conditional_inferences(model, query, parameters = NULL, given = NULL)
 }
 \description{
 Calculate estimands conditional on observed data (currently, for single-case process tracing) together with data realization probabilities
-Realization probabilities are the probability of the observed data given data is sought on observed variables
+Realization probabilities are the probability of the observed data given data is sought on observed node
 }
 \examples{
 model <- make_model("X->Y")
@@ -25,15 +25,13 @@ model <- set_parameters(model, type = "flat")
 conditional_inferences(model, query = "Y[X=1]>Y[X=0]")
 
 # Example of posteriors given monotonic X -> M -> Y model
-library(dplyr)
 model <- make_model("X-> M -> Y")  \%>\%
-  set_restrictions(labels = list(M = "10", Y = "10")) \%>\%
-  set_parameters(type = "flat")
+  set_restrictions(labels = list(M = "10", Y = "10"))
 conditional_inferences(model, query = "Y[X=1]>Y[X=0]", given = "Y==1")
 
 # Running example
 model <- make_model("S -> C -> Y <- R <- X; X -> C -> R") \%>\%
-   set_restrictions(node_restrict =
+   set_restrictions(labels =
    list(C = "C1110", R = "R0001", Y = "Y0001"), keep = TRUE)
 conditional_inferences(model, query = list(COE = "(Y[S=0] > Y[S=1])"),
 given = "Y==1 & S==0")

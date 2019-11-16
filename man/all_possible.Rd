@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{all_possible}
 \alias{all_possible}
-\title{Helper for getting all data on specified variables with N observed}
+\title{Helper for getting all data on specified node with N observed}
 \usage{
 all_possible(model, N, vars = NULL, condition = TRUE)
 }
@@ -11,12 +11,12 @@ all_possible(model, N, vars = NULL, condition = TRUE)
 
 \item{N}{Integer, number of observed cases}
 
-\item{vars}{String vector listing variables observed}
+\item{vars}{String vector listing node observed}
 
 \item{condition}{Statement indicating condition satisfied by observed data}
 }
 \description{
-Helper for getting all data on specified variables with N observed
+Helper for getting all data on specified node with N observed
 }
 \examples{
 model <- make_model("X->M->Y")

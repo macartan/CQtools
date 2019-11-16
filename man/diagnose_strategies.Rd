@@ -6,8 +6,8 @@
 \usage{
 diagnose_strategies(reference_model = NULL, analysis_model,
   given = NULL, queries, subsets = TRUE, expand_grid = FALSE,
-  data_strategies = list(strategy1 = list(N = 1, within = TRUE, vars =
-  NULL, conditions = list(TRUE))), sims = 1000,
+  data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars =
+  NULL, conditions = list(TRUE))), sims = 1000, use_parameters = FALSE,
   estimands_database = NULL, estimates_database = NULL,
   possible_data_list = NULL)
 }
@@ -24,15 +24,21 @@ diagnose_strategies(reference_model = NULL, analysis_model,
 
 \item{expand_grid}{Logical, expands grid over query arguments (queries, subsets)}
 
-\item{data_strategies}{list containing arguments for data strategies. For instance \code{list(strategy1 = list(N=1, within = TRUE, vars = NULL, conditions = list(TRUE)))}}
+\item{data_strategies}{list containing arguments for data strategies.
+For instance \code{list(strategy1 = list(N=1, withins = TRUE, vars = NULL, conditions = list(TRUE)))}}
 
 \item{sims}{= 1000,}
 
-\item{estimands_database}{Database of estimands, optional}
+\item{use_parameters}{Logical, defaulting to FALSE. If TRUE use   parameter vector rather than priors/posteriors.
+Used in process tracing problems with a single case.
+In this case the estimand is taken to be case level and is drawn  *conditional on case data*,
+and the posterior variance is defined on the type, not the parameter (which is known, after all).}
 
-\item{estimates_database}{Database of estimates, optional}
+\item{estimands_database}{Database of estimands, optional, for speed}
 
-\item{possible_data_list}{Database of possible data, optional}
+\item{estimates_database}{Database of estimates, optional, for speed}
+
+\item{possible_data_list}{Database of possible data, optional, for speed}
 }
 \value{
 A dataframe
@@ -42,6 +48,11 @@ Diagnose a data strategy
 }
 \examples{
 
+# Example using parameters and  minimal arguments, assumes search for one case
+diagnosis <- diagnose_strategies(
+  analysis_model = make_model("X->Y"),
+  queries = "Y[X=1]==1",
+  use_parameters = TRUE)
 # Example with minimal arguments, assumes search for one case
 diagnose_strategies(
   analysis_model = make_model("X->Y"),
@@ -59,8 +70,8 @@ given   <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
              collapse_data(analysis_model, remove_family = TRUE)
 queries <- list(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]-Y[X=0]")
 subsets <- list(TRUE, "Y==1 & X==1") # Subsets for queries
-data_strategies <- list(strategy1 = list(N=1, within = TRUE, vars = "M", conditions = list("Y==1 & X==1")),
-											   strategy2 = list(N=1, within = TRUE, vars = "M", conditions = list("Y==X")))
+data_strategies <- list(strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = list("Y==1 & X==1")),
+											   strategy2 = list(N=1, withins = TRUE, vars = "M", conditions = list("Y==X")))
 
 diagnosis <- diagnose_strategies(
   analysis_model = analysis_model,
@@ -70,5 +81,16 @@ diagnosis <- diagnose_strategies(
   subsets = subsets,
   sims = 4000)
 diagnosis
-make_possible_data(model, N = 2, within = FALSE)
+
+# Wide or deep
+model <- make_model("K-> X -> Y <- K")
+data_strategies = list(
+		N4L0 =  list(N=4, withins = FALSE, vars = list(c("X", "Y")), conditions = TRUE),
+		N2L2 =  list(N=2, withins = FALSE, vars = list(c("X", "K", "Y")), conditions = TRUE),
+		N3L1 =  list(N=list(1,2), withins = FALSE, vars = list(c("X", "K", "Y"), c("X", "Y")), conditions = TRUE))
+
+	possible_data_list = lapply(data_strategies, function(ds)
+		with(ds, make_possible_data(model = model, given = NULL,
+		N = N, withins = withins, conditions = conditions, vars = vars)))
+lapply(possible_data_list, length)
 }

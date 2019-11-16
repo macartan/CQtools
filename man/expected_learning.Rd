@@ -12,7 +12,7 @@ expected_learning(model, query, strategy = NULL, given = NULL,
 
 \item{query}{A query as a character string, for example 'Y[X=1]>Y[X=0]'}
 
-\item{strategy}{A set of variables to be sought}
+\item{strategy}{A set of node to be sought}
 
 \item{given}{A conditioning set as a character string that evaluates to a logical, for example 'Y==1'}
 
@@ -25,9 +25,7 @@ Expected reduction in variance from one step data collection strategy
 # Reduction in variance given monotonic X -> M1 -> M2 -> Y model
 library(dplyr)
 model <- make_model("X -> M1 -> M2 -> Y") \%>\%
-  set_restrictions(node_restrict = list(M1 = "10", M2 = "10", Y = "10")) \%>\%
-  set_priors() \%>\%
-  set_parameters(type = 'flat')
+  set_restrictions(labels = list(M1 = "10", M2 = "10", Y = "10"))
 el <- expected_learning(model, query = "Y[X=1]>Y[X=0]",
                   strategy = c("X", "M2"), given = "Y==1")
 attr(el, "results_table")
