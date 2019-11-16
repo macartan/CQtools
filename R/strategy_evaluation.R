@@ -25,9 +25,28 @@
 #' 		strategies  = c("S", "Y", "Y"),  given = "Y==0",
 #' 		query = "(Y[S=1] != Y[S=0])")
 #'
+#' # The cheaper strategy is to look for S only,
+#' # the lower variance strategy is look for X if S=0
+#' # Any strategy that loos for  X if S = 1 is dominated
+#'
 #' strategy_evaluation(model,
-#' 		strategies  = c("S", NA, "X"),  given = "Y==0",
+#' 		strategies  = rbind(
+#'   		c("S", NA, NA),
+#'  		c("S",  "X", NA),
+#'   		c("S", NA, "X"),
+#'  		c("S",  "X", "X")),
+#' 		given = "Y==0",
 #' 		query = "(Y[S=1] != Y[S=0])")
+#'
+#' strategy_evaluation(model,
+#' 		strategies  = c("S", NA, NA),  given = "Y==0",
+#' 		query = "(Y[S=1] != Y[S=0])")
+#'
+#' # R is no help
+#' strategy_evaluation(model,
+#'    strategies  = c("R", NA, "S"),
+#'    query = "(Y[S=1] != Y[S=0])",
+#'    given = "Y==0")
 #'
 #'\dontrun{
 #' strategy_evaluation(model,
@@ -52,7 +71,7 @@ strategy_evaluation <- function(model,
 																given = NULL,
 																prices = NULL) {
 
-	prior_mean <- query_model(model = model, queries = query, subsets = given)$mean
+	prior_mean <- query_model(model = model, queries = query, subsets = given, using = "parameters")$mean
 	prior_variance <- prior_mean*(1-prior_mean)
   if(is.na(prior_mean)) stop("Prior not defined. Check for impossible conditions.")
 
@@ -139,8 +158,8 @@ strategy_evaluation_single <- function(model,
 		})
 
 	# Flag: Fill in NAs if probs = 0
-	evs[probs == 0]  <- 0
-	strategy[2:3][probs == 0]  <- "NONE"
+	# evs[probs == 0]  <- 0
+	# strategy[2:3][probs == 0]  <- "NONE"
 
 	# Expected Number of clues sought: 1 plus 1 if additional steps sought
 	expected_n        <- 1 + probs%*%as.vector((!is.na(strategy[2:3])))
