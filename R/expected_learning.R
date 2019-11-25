@@ -50,10 +50,12 @@
 
 expected_learning <- function(model, query, strategy = NULL, given = NULL, parameters = NULL){
 
-		vars <- model$node
+    prior_estimand <- query_model(model, query = query, subsets = given, using = "parameters")$mean
+
+ 		vars <- model$nodes
 		given0 <- ifelse(is.null(given), " ", given)
 
-		# Figure out which node are given
+		# Figure out which nodes are given
 		given_vars <- NULL
 		if(!is.null(given)) {
 			given_vars <- stringr:::str_extract_all(given, boundary("word"))[[1]]
@@ -80,6 +82,7 @@ expected_learning <- function(model, query, strategy = NULL, given = NULL, param
 		conditional_inferences(model = model, query = query,
 													 given = given, parameters = parameters)
   results_table <- filter(results_table, prob !=0)
+
 	# Clean up
 	results_table <- mutate(results_table,  prob = prob/sum(prob), var = posterior*(1-posterior))
 
@@ -88,8 +91,11 @@ expected_learning <- function(model, query, strategy = NULL, given = NULL, param
   						data.frame(
   							strategy = paste(strategy, collapse = ", "),
   							given = given0,
-  							prior_estimand = prob%*%posterior,
-  							prior_var  = (prob%*%posterior)*(1- prob%*%posterior),
+  							#prior_estimand = prob%*%posterior,
+  							#prior_var  = (prob%*%posterior)*(1- prob%*%posterior),
+  							prior_estimand = prior_estimand,
+  							prior_var  = (prior_estimand)*(1- prior_estimand),
+
   							E_post_var = (prob%*%var), stringsAsFactors = FALSE))
 
 #  print(query)

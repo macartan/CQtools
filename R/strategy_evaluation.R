@@ -81,7 +81,7 @@ strategy_evaluation <- function(model,
 	if(is.null(prices)) prices <- rep(1, length(vars))
 
 	if(!is.null(given)) {
-		given_vars <- stringr::str_extract_all(given, boundary("word"))[[1]]
+		given_vars <- stringr::str_extract_all(given, stringr::boundary("word"))[[1]]
 		given_vars <- given_vars[(given_vars %in% vars)]
 	} else {given_vars <- NULL}
 
@@ -100,9 +100,13 @@ strategy_evaluation <- function(model,
 			data.frame(stringsAsFactors = FALSE)
 
 	# Export
-	labels <- c("priors", apply(strategies, 1, paste, collapse = "-"))
+#	labels <- c("priors", apply(strategies, 1, paste, collapse = "-"))
+#	labels <- c("priors", apply(strategies, 1, paste, collapse = "-"))
 
-	cbind(labels,
+	strategies2 <- strategies
+	strategies2[is.na(strategies2)] <- "."
+	labs <- c("priors", paste0("(",strategies2[,1],"),(", strategies2[,2], ",", strategies2[,3], ")"))
+	cbind(labs,
 				rbind(prior, x))
 	}
 
