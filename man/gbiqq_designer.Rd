@@ -24,7 +24,7 @@ gbiqq_designer(model = make_model("X -> Y"), restrictions = NULL,
 \item{answer_strat}{priors used at the analysis stage, if different}
 }
 \description{
-Define a model, estimand, and answer strategy.
+Define a model, estimand, and answer strategy. will need @ import DeclareDesign
 }
 \examples{
 require("DeclareDesign")
