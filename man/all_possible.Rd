@@ -4,7 +4,8 @@
 \alias{all_possible}
 \title{Helper for getting all data on specified node with N observed}
 \usage{
-all_possible(model, N, vars = NULL, condition = TRUE)
+all_possible(model, N, vars = NULL, condition = TRUE,
+  possible_data = TRUE, complete_data = TRUE)
 }
 \arguments{
 \item{model}{model made with gbiqq::make_model}

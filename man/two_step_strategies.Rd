@@ -6,6 +6,11 @@
 \usage{
 two_step_strategies(model, vars = model$nodes)
 }
+\arguments{
+\item{model}{A causal model made by make_model}
+
+\item{vars}{Variables to}
+}
 \description{
 Make set of two step strategies
 }

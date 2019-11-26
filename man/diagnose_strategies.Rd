@@ -9,7 +9,7 @@ diagnose_strategies(reference_model = NULL, analysis_model,
   data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars =
   NULL, conditions = list(TRUE))), sims = 1000, use_parameters = FALSE,
   estimands_database = NULL, estimates_database = NULL,
-  possible_data_list = NULL)
+  possible_data_list = NULL, fit = NULL)
 }
 \arguments{
 \item{reference_model}{A causal model as created by \code{make_model}}
@@ -29,7 +29,7 @@ For instance \code{list(strategy1 = list(N=1, withins = TRUE, vars = NULL, condi
 
 \item{sims}{= 1000,}
 
-\item{use_parameters}{Logical, defaulting to FALSE. If TRUE use   parameter vector rather than priors/posteriors.
+\item{use_parameters}{Logical, defaulting to FALSE. If TRUE use  parameter vector rather than priors/posteriors.
 Used in process tracing problems with a single case.
 In this case the estimand is taken to be case level and is drawn  *conditional on case data*,
 and the posterior variance is defined on the type, not the parameter (which is known, after all).}
@@ -48,13 +48,15 @@ Diagnose a data strategy
 }
 \examples{
 
+fit <- fitted_model()
+
 # Example using parameters and  minimal arguments, assumes search for one case
 diagnosis <- diagnose_strategies(
   analysis_model = make_model("X->Y"),
   queries = "Y[X=1]==1",
   use_parameters = TRUE)
 # Example with minimal arguments, assumes search for one case
-diagnose_strategies(
+diagnosis <- diagnose_strategies(
   analysis_model = make_model("X->Y"),
   queries = "Y[X=1]==1",
   sims = 10)
@@ -62,16 +64,22 @@ diagnose_strategies(
 # Example comparing two data strategies with two queries
  rm(list = ls())
 if(!exists("fit")) fit  <- fitted_model()
+
 analysis_model <-
    make_model("X->M->Y")  \%>\%
    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()
+
 given   <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
              collapse_data(analysis_model, remove_family = TRUE)
+
 queries <- list(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]-Y[X=0]")
+
 subsets <- list(TRUE, "Y==1 & X==1") # Subsets for queries
-data_strategies <- list(strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = list("Y==1 & X==1")),
-											   strategy2 = list(N=1, withins = TRUE, vars = "M", conditions = list("Y==X")))
+
+data_strategies <- list(
+  strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = list("Y==1 & X==1")),
+  strategy2 = list(N=1, withins = TRUE, vars = "M", conditions = list("Y==X")))
 
 diagnosis <- diagnose_strategies(
   analysis_model = analysis_model,
@@ -79,10 +87,14 @@ diagnosis <- diagnose_strategies(
   given = given,
   queries = queries,
   subsets = subsets,
-  sims = 4000)
+  sims = 4000,
+  fit = fit)
 diagnosis
 
-# Wide or deep
+# Wide or deep illustration
+
+rm(list = ls())
+
 model <- make_model("K-> X -> Y <- K")
 data_strategies = list(
 		N4L0 =  list(N=4, withins = FALSE, vars = list(c("X", "Y")), conditions = TRUE),
@@ -92,5 +104,14 @@ data_strategies = list(
 	possible_data_list = lapply(data_strategies, function(ds)
 		with(ds, make_possible_data(model = model, given = NULL,
 		N = N, withins = withins, conditions = conditions, vars = vars)))
+
 lapply(possible_data_list, length)
+
+diagnosis <- diagnose_strategies(
+  analysis_model = model,
+  data_strategies = data_strategies,
+  queries = "Y[X=1] - Y[X=0]",
+  fit = fit,
+  possible_data_list = possible_data_list)
+diagnosis
 }

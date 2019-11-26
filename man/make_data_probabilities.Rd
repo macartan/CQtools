@@ -28,15 +28,13 @@ NOTE: This needs to be checked for whether it is taking account of strategy prob
 }
 \examples{
 
-library(dplyr)
-model <- make_model("X->M->Y") \%>\%
-         set_parameters(type = "flat")
+model <- make_model("X->M->Y")
 possible_data <- make_possible_data(model, N= 2, vars = list(model$node), within = FALSE)
-make_data_probabilities(model, pars = model$parameters, possible_data)
+make_data_probabilities(model, pars = get_parameters(model), possible_data)
 
 given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
   collapse_data(model, remove_family = TRUE)
 possible_data <- make_possible_data(model, given = given, condition = "X==1 & Y==1", vars = "M", within = TRUE )
-make_data_probabilities(model, pars = model$parameters, possible_data)
+make_data_probabilities(model, pars = get_parameters(model), possible_data)
 
 }

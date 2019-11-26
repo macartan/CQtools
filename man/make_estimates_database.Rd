@@ -30,7 +30,6 @@ A list with query output dataframes for each data strategy
 This function can run many models and can take a long time depending on the size of possible data.
 }
 \examples{
-library(dplyr)
 model <- make_model("X->M->Y")  \%>\%
    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()

@@ -12,16 +12,14 @@
 #' @return A dataset
 #' @examples
 #'
-#' library(dplyr)
-#' model <- make_model("X->M->Y") %>%
-#'          set_parameters(type = "flat")
+#' model <- make_model("X->M->Y")
 #' possible_data <- make_possible_data(model, N= 2, vars = list(model$node), within = FALSE)
-#' make_data_probabilities(model, pars = model$parameters, possible_data)
+#' make_data_probabilities(model, pars = get_parameters(model), possible_data)
 #'
 #' given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
 #'   collapse_data(model, remove_family = TRUE)
 #' possible_data <- make_possible_data(model, given = given, condition = "X==1 & Y==1", vars = "M", within = TRUE )
-#' make_data_probabilities(model, pars = model$parameters, possible_data)
+#' make_data_probabilities(model, pars = get_parameters(model), possible_data)
 #'
 make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, strategy = NULL, strategy_set = NULL) {
 
@@ -32,9 +30,9 @@ make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, str
 	if(ncol(possible_data)==3) return(1)
 
 	# Ambiguity matrix for data types
-	if(is.null(A_w)) A_w <- (get_likelihood_helpers(model)$A_w)[possible_data$event, ]
+	if(is.null(A_w)) A_w <- 	get_data_families(model, drop_impossible = TRUE, drop_none = TRUE, mapping_only = TRUE)[possible_data$event, ]
 
-	w_full = A_w %*% (get_event_prob(model, parameters = pars, using = "parameters"))
+	w_full = A_w %*% (get_event_prob(model, parameters = as.numeric(pars)))
 
   if(is.null(strategy)){strategy <- possible_data$strategy}
 	if(is.null(strategy_set)) strategy_set <- unique(strategy)

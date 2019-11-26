@@ -4,12 +4,22 @@
 \alias{strategy_evaluation}
 \title{Strategy evaluation}
 \usage{
-strategy_evaluation(model, strategy = c("X", "C", NA), given = "Y==0",
-  query, prices = NULL)
+strategy_evaluation(model, strategies, query, given = NULL,
+  prices = NULL)
+}
+\arguments{
+\item{strategies}{s x 3 matrix of strstegies. Each strategy is a triple that indicates (a) first node sought (b) action if first node is 0 (c) action if first node = 1}
+
+\item{query}{A causal query, for instance "(Y[S=1] != Y[S=0])"}
+
+\item{given}{A statement describing known data; for instance "Y==0 & X==1",}
+
+\item{prices}{A vector of prices of length length(model$nodes)
+
+This function calculates the expected posterior variance from each strategy and the expected number of clues sought}
 }
 \description{
-A strategy is a triple that indicates (a) first node sought (b) action if first node is 0 (c) action if first node = 1
-This function calculates the expected posterior variance from each strategy and the expected number of clues sought
+Strategy evaluation
 }
 \examples{
 model <-
@@ -18,10 +28,53 @@ model <-
      labels = list(C = c("C1110", "C1111"),
                    R = c("R0001", "R0000"),
                    Y = c("Y0001")), keep = TRUE)
-strategies <- two_step_strategies(model)
 
+# Evaluation of single strategy
 strategy_evaluation(model,
-		strategy  = strategies[1],  given = "Y==0",
+		strategies  = c("S", NA, NA),  given = "Y==0",
 		query = "(Y[S=1] != Y[S=0])")
 
+strategy_evaluation(model,
+		strategies  = c("S", "Y", "Y"),  given = "Y==0",
+		query = "(Y[S=1] != Y[S=0])")
+
+# The cheaper strategy is to look for S only,
+# the lower variance strategy is look for X if S=0
+# Any strategy that loos for  X if S = 1 is dominated
+
+strategy_evaluation(model,
+		strategies  = rbind(
+  		c("S", NA, NA),
+ 		c("S",  "X", NA),
+  		c("S", NA, "X"),
+ 		c("S",  "X", "X")),
+		given = "Y==0",
+		query = "(Y[S=1] != Y[S=0])")
+
+strategy_evaluation(model,
+		strategies  = c("S", NA, NA),  given = "Y==0",
+		query = "(Y[S=1] != Y[S=0])")
+
+# R is no help
+strategy_evaluation(model,
+   strategies  = c("R", NA, "S"),
+   query = "(Y[S=1] != Y[S=0])",
+   given = "Y==0")
+
+\dontrun{
+strategy_evaluation(model,
+		strategies  = c("X", NA, NA),  given = "Y==0 & R==1",
+		query = "(Y[S=1] != Y[S=0])")
+}
+
+# Evaluation of many strategies (a little slow)
+
+strategies <- two_step_strategies(model)[1:5,]
+
+result <-  strategy_evaluation(model,
+  										strategies  = strategies,
+  										query = "(Y[S=1] != Y[S=0])",
+  										given = "Y==0 & X==1",
+  										prices = c(1, 1.5, 1.2, .5, .7))
+result
 }

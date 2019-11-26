@@ -74,11 +74,15 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 #' model <- make_model("X->M->Y")
 #' gbiqqtools:::all_possible(model, N=2, vars = c("X", "M"))
 #' gbiqqtools:::all_possible(model, N=2, vars = c("X", "Y"), condition = "Y==0")
-all_possible <- function(model, N, vars = NULL, condition = TRUE){
+all_possible <- function(model, N, vars = NULL, condition = TRUE, possible_data = TRUE, complete_data = TRUE){
 
 	if(is.null(vars)) vars <- model$node
 
-	df <- get_max_possible_data(model) %>% filter(eval(parse(text = condition)))
+	#df <- all_data_types(model, complete_data = complete_data)%>%
+	##df <- get_max_possible_data(model)
+  #	filter(eval(parse(text = condition))) %>% select(-event)
+
+	df <- all_data_types(model, possible_data = possible_data, complete_data = complete_data, given = condition)
 
 	if(!all(is.na(vars))) df[, !names(df) %in% vars] <- NA
 
