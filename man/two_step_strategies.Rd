@@ -14,3 +14,6 @@ two_step_strategies(model, vars = model$nodes)
 \description{
 Make set of two step strategies
 }
+\examples{
+two_step_strategies(make_model("X->M->Y"))
+}

@@ -114,4 +114,16 @@ diagnosis <- diagnose_strategies(
   fit = fit,
   possible_data_list = possible_data_list)
 diagnosis
+
+# Troubles shooting example using value of uniformly distributed variable. Asnwer shoul dbe 1/18
+diagnosis <- diagnose_strategies(
+  analysis_model = make_model("X -> Y"),
+  data_strategies = list(
+		take_one =  list(N=1, withins = FALSE, vars = list(c("X")), conditions = TRUE)),
+  queries = "X==1",
+  fit = fit,
+  sims = 8000)
+diagnosis
+
+
 }

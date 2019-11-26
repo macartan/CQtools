@@ -189,7 +189,7 @@ strategy_evaluation_single <- function(model,
 #' @param vars Variables to
 #' @export
 #' @examples
-#' two_step_strategies(make_model("X->M->Y))
+#' two_step_strategies(make_model("X->M->Y"))
 two_step_strategies <- function(model, vars = model$nodes){
 
 	x <- sapply(1:length(vars), function(j)
