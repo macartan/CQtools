@@ -42,6 +42,7 @@ make_estimates_database <- function(model,
 																		subsets = TRUE,
 																		expand_grid = FALSE,
 																		iter = 4000,
+																		refresh = 0,
 																		use_parameters = FALSE,
 																		...) {
 
@@ -75,7 +76,7 @@ make_estimates_database <- function(model,
 
 		data <- expand_data(data_events, model)
 
-		updated <- gbiqq::gbiqq(model = model, data = data, stan_model = fit, iter = iter)
+		updated <- gbiqq::gbiqq(model = model, data = data, stan_model = fit, iter = iter, refresh = refresh)
 
 		data.frame(
 			query_model(updated, queries = queries, using = "posteriors", subsets = subsets, expand_grid = expand_grid),

@@ -23,11 +23,14 @@
 #' fit <- fitted_model()
 #'
 #' # Example using parameters and  minimal arguments, assumes search for one case
+#' # But nothing learned about parameters
 #' diagnosis <- diagnose_strategies(
 #'   analysis_model = make_model("X->Y"),
 #'   queries = "Y[X=1]==1",
-#'   use_parameters = TRUE)
-#' # Example with minimal arguments, assumes search for one case
+#'   use_parameters = TRUE,
+#'   fit = fit)
+
+#' # Example with minimal arguments, assumes search for one case, updating on parameters
 #' diagnosis <- diagnose_strategies(
 #'   analysis_model = make_model("X->Y"),
 #'   queries = "Y[X=1]==1",
@@ -87,14 +90,15 @@
 #'   possible_data_list = possible_data_list)
 #' diagnosis
 #'
-#' # Troubles shooting example using value of uniformly distributed variable. Asnwer shoul dbe 1/18
+#' # Simple illustration of updating on a probability given a uniform prior.
+#' # MSE and Expected posterior variance  should be both 1/18
 #' diagnosis <- diagnose_strategies(
 #'   analysis_model = make_model("X -> Y"),
 #'   data_strategies = list(
 #' 		take_one =  list(N=1, withins = FALSE, vars = list(c("X")), conditions = TRUE)),
 #'   queries = "X==1",
 #'   fit = fit,
-#'   sims = 8000)
+#'   sims = 6000)
 #' diagnosis
 #'
 #'
@@ -107,14 +111,18 @@ diagnose_strategies <- function(reference_model = NULL,
 																expand_grid = FALSE, # For queries
 																data_strategies = list(strategy1 = list(N=1, withins = TRUE, vars = NULL, conditions = list(TRUE))),
 																sims = 1000,
+																iter = NULL,
+																refresh = 1000,
 																use_parameters = FALSE,
 																estimands_database = NULL,
 																estimates_database = NULL,
 																possible_data_list = NULL,
-																fit = NULL){
+																fit = NULL,
+																add_MSE = TRUE # Add MSE
+																){
 	# Housekeeping
 	if(is.null(fit) & !(use_parameters)) fit  <- gbiqq::fitted_model()
-  iter = max(sims, 4000)
+  if(is.null(iter)) iter = max(sims, 4000)
 
   if(use_parameters) sims <- 1  # If parameters are used there is no simulation
 
@@ -130,7 +138,7 @@ diagnose_strategies <- function(reference_model = NULL,
 		  reference_model <- analysis_model
 		} else {
 			data <- expand_data(given, analysis_model)
-		  reference_model <- gbiqq(analysis_model, data, stan_model = fit, iter = iter)
+		  reference_model <- gbiqq(analysis_model, data, stan_model = fit, iter = iter, refresh = 0)
 	}}
 
 	# 2. REFERENCE PARAMETERS DISTRIBUTION
@@ -196,18 +204,16 @@ diagnose_strategies <- function(reference_model = NULL,
   # 5 POSSIBLE DATA DISTRIBUTION: FOR EACH STRATEGY nrow(possible_data) * sims matrix of data probabilities
 	##################################################################################################
   ## FLAG: THIS FUNCTION IS THE SLOWEST STEP: HOW TO SPEED UP?
-	## Speed up possible by skipping for the priors strategy as it
 
 	data_probabilities_list <-
 		lapply(possible_data_list[-length(possible_data_list)], function(possible_data) {
 
-			# Arguments generated one prior to applying apply; FLAG strategy definition is nasty
-			# A_w <- (get_likelihood_helpers(reference_model)$A_w)[possible_data$event, ]
+			# Arguments generated  prior to applying apply for speed
 			A_w <-  get_data_families(reference_model, drop_impossible = TRUE, drop_none = TRUE, mapping_only = TRUE)[possible_data$event, ]
 			strategy     <- possible_data$strategy
 			strategy_set <- unique(possible_data$strategy)
 
-		apply(param_dist, 1, function(pars) {
+	p <- apply(param_dist, 1, function(pars) {
 			make_data_probabilities(
 				model = reference_model,
 				pars = pars,
@@ -218,10 +224,14 @@ diagnose_strategies <- function(reference_model = NULL,
 			}
 			)
 
+	# p should be of dimensionality simulations x data_possibilities
+	if(use_parameters) return(matrix(p, nrow = 1))
+	return(t(p))
+
 		})
 
 	# For prior existing data is certain
-	data_probabilities_list[["prior"]] <- rep(1, sims)
+	data_probabilities_list[["prior"]] <- matrix(1, nrow = sims)
 
 
 	# 6 ESTIMATES DISTRIBUTION: ESTIMAND FOR EACH QUERY FROM UPDATED DATA
@@ -236,36 +246,64 @@ diagnose_strategies <- function(reference_model = NULL,
 		        												subsets = subsets,
 		        												expand_grid = expand_grid,
 		        												iter = iter,
-		        												use_parameters = use_parameters)
+		        												use_parameters = use_parameters,
+		        												refresh = refresh)
 		})
 	}
 
   # 7 MAGIC: Calculate diagnostics for each data strategy
 	##################################################################################################
-	estimands <- apply(data.frame(estimands_database), 2, mean)
+	estimands <- apply(data.frame(estimands_database), 2, mean) #estimand calculation from full distribution
+	if(!use_parameters) mands  <- data.frame(estimands_database[params_to_use,]) # estimand draws from sampled parameters
 
 diagnosis <-
+
 	lapply(1:length(estimates_database), function(j) { # applied over each strategy, inlcuding prior
 
 		mate <- estimates_database[[j]]
 		# Error if each datatype observed  n_query * n_data_possibilities
 		estimate <- sapply(1:length(mate), function(i)  mate[[i]]$mean)
+		if(is.null(dim(estimate))) estimate <- matrix(estimate, nrow = 1) #eg use_parameters
+
+		# post_var should be a n_data * nq matrix
 		post_var <- sapply(1:length(mate), function(i) (mate[[i]]$sd)^2)
+		if(length(queries)==1) post_var <- matrix(post_var, nrow =1)
 		prob     <- data_probabilities_list[[j]]
 
 		# Return
 		df <- data.frame(
-			strategy = names(data_strategies)[j],
+			strategy  = names(data_strategies)[j],
 			estimates_database[[1]][[1]][,c("Query", "Subset")],    # This picks up query and subset labels
-			estimand = estimands,
-			estimates= apply(estimate%*%prob, 1, mean) # Double averaging: over parameters and data type draw
+			estimand  = estimands,
+
+			# prob is dim(sims * data_possibilities) estimate is dim(queries * data_possibilities)
+			# if use_parametes 1*2, t(q * 2)
+			estimates = apply(prob%*%t(estimate), 2, mean) # Double averaging: over parameters and data type draw
       )
 
 		if(use_parameters)   df$post_var= (abs(df$estimate))*(1 - (abs(df$estimate))) # p(1-p) for probability of type
 
 		if(!use_parameters)  {
-			df$MSE      = apply((estimate%*%prob - (t(estimands_database)[,params_to_use]))^2, 1, mean)
-			df$post_var = apply(post_var%*%prob, 1, mean)}
+
+				if(add_MSE){
+				# Go through for each query
+				df$MSE    <-
+
+				sapply(1:ncol(mands), function(q) {
+
+	          est_given_data <- estimate[q,]
+						squared_error <- sapply(est_given_data, function(est) (est-mands[,q])^2)
+													 	mean(apply(prob * squared_error, 1, sum))
+													}
+													)
+				}
+
+
+#			df$post_var = post_var%*%apply(prob,2, mean)
+			Expected_post_vars <- prob%*%t(post_var)
+			df$post_var = apply(Expected_post_vars, 2, mean)
+			df$post_var_sd = apply(Expected_post_vars, 2, sd)
+		}
 
 		df
 	})
@@ -274,6 +312,7 @@ diagnosis <-
 # Clean up and export: Put priors in front and bind
 diagnosis <- diagnosis[c(length(diagnosis), 1:(length(diagnosis) - 1))]
 diagnosis <- do.call("rbind", diagnosis)
+rownames(diagnosis) <- NULL
 
 return_list <- list()
 return_list$diagnoses_df        <- diagnosis
