@@ -16,6 +16,7 @@
 #' @param estimands_database Database of estimands, optional, for speed
 #' @param estimates_database Database of estimates, optional, for speed
 #' @param possible_data_list Database of possible data, optional, for speed
+#' @param add_MSE Calculate Logical: Calculate MSE and add to output. FALSE speeds up analysis marginally.
 #' @export
 #' @return A dataframe
 #' @examples
@@ -24,12 +25,19 @@
 #'
 #' # Example using parameters and  minimal arguments, assumes search for one case
 #' # But nothing learned about parameters
+#' # FLAG: FOr this to function: make_estimates_database has to treat "conditions" as given data
+#' model <- make_model("X->M->Y") %>% set_restrictions(c(decreasing("X","M"), decreasing("M","Y")))
 #' diagnosis <- diagnose_strategies(
-#'   analysis_model = make_model("X->Y"),
-#'   queries = "Y[X=1]==1",
+#'   analysis_model = model,
+#'   queries = "Y[X=1]> Y[X=0]",
 #'   use_parameters = TRUE,
-#'   fit = fit)
-
+#'   given = collapse_data(data.frame(X = 1), model, remove_family = TRUE),
+#'   data_strategies = list(
+#'    strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = TRUE),
+#'    strategy2 = list(N=1, withins = TRUE, vars = list(c("M", "Y")), conditions = TRUE)
+#'    )
+#'    )
+#'
 #' # Example with minimal arguments, assumes search for one case, updating on parameters
 #' diagnosis <- diagnose_strategies(
 #'   analysis_model = make_model("X->Y"),
@@ -98,7 +106,7 @@
 #' 		take_one =  list(N=1, withins = FALSE, vars = list(c("X")), conditions = TRUE)),
 #'   queries = "X==1",
 #'   fit = fit,
-#'   sims = 6000)
+#'   sims = 2000)
 #' diagnosis
 #'
 #'
@@ -298,8 +306,6 @@ diagnosis <-
 													)
 				}
 
-
-#			df$post_var = post_var%*%apply(prob,2, mean)
 			Expected_post_vars <- prob%*%t(post_var)
 			df$post_var = apply(Expected_post_vars, 2, mean)
 			df$post_var_sd = apply(Expected_post_vars, 2, sd)
@@ -315,12 +321,12 @@ diagnosis <- do.call("rbind", diagnosis)
 rownames(diagnosis) <- NULL
 
 return_list <- list()
-return_list$diagnoses_df        <- diagnosis
+return_list$diagnoses_df        <- arrange(diagnosis, Query)
 return_list$possible_data_list  <- possible_data_list
 return_list$estimands_database  <- estimands_database
 return_list$estimates_database  <- estimates_database
 return_list$data_probabilities_list  <-  data_probabilities_list
-
+return_list$details <- c(iter = iter, sims = sims, analysis_model = analysis_model, use_parameters = use_parameters)
 return_list
 
 class(return_list) <- c("strategy_diagnoses")
@@ -330,7 +336,7 @@ return_list
 }
 
 ### NOTE TO SELF
-## EPXETED POSTERIOR VARIANCE WHEN PARAMETERS = TRUE HAS TO BE ON THE *CASE* LEVEL VARIANCE NOT HTE PARAMETER VARIANCE, WHICH WILL BE 0!
+## EXPECTED POSTERIOR VARIANCE WHEN PARAMETERS = TRUE HAS TO BE ON THE *CASE* LEVEL VARIANCE NOT HTE PARAMETER VARIANCE, WHICH WILL BE 0!
 
 
 #' @export
@@ -349,6 +355,10 @@ summary.strategy_diagnoses <- function(object, ...) {
 #' @export
 print.summary.strategy_diagnoses <- function(x, ...){
 	print(x$diagnoses_df)
+	if(!x$details$use_parameters) print(paste("Calculations using", x$details$iter, "stan iterations and",
+				x$details$sims, "parameter draws.)"))
+	if(x$details$use_parameters) print("No updating on parameters: posterior variance is for case level inference.")
+	print(paste("Reference model has DAG:", diagnosis$details$analysis_model.statement))
 }
 
 

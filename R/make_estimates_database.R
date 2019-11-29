@@ -55,7 +55,12 @@ make_estimates_database <- function(model,
 		lapply(2:ncol(possible_data), function(j) {
 
 		data.frame(
-			query_model(model, queries = queries, using = "parameters", subset = subsets, expand_grid = expand_grid),
+			query_model(model,
+									queries = queries,
+									using = "parameters",
+									subset = subsets,
+									expand_grid =
+									expand_grid),
 			data_pattern = j -1
 		)})
 		)
