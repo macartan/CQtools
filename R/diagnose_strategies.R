@@ -12,7 +12,10 @@
 #' Used in process tracing problems with a single case.
 #' In this case the estimand is taken to be case level and is drawn  *conditional on case data*,
 #' and the posterior variance is defined on the type, not the parameter (which is known, after all).
-#' @param sims = 1000,
+#' @param sims Integer, number of estimand draws, defaults to max(sims, 4000)
+#' @param iter Integer, passed to stan, defaults to 4000
+#' @param chains Integer, passed to stan, defaults to 4
+#' @param refresh Integer, passed to stand, defaults to 1000,
 #' @param estimands_database Database of estimands, optional, for speed
 #' @param estimates_database Database of estimates, optional, for speed
 #' @param possible_data_list Database of possible data, optional, for speed
@@ -22,6 +25,17 @@
 #' @examples
 #'
 #' fit <- fitted_model()
+#'
+#' # Simple illustration of updating on a probability given a uniform prior.
+#' # MSE and Expected posterior variance should both be 1/18
+#' diagnosis <- diagnose_strategies(
+#'   analysis_model = make_model("X -> Y"),
+#'   data_strategies = list(
+#' 		take_one =  list(N=1, withins = FALSE, vars = list(c("X")), conditions = TRUE)),
+#'   queries = "X==1",
+#'   fit = fit,
+#'   sims = 2000)
+#' diagnosis
 #'
 #' # Example using parameters and  minimal arguments, assumes search for one case
 #' # But nothing learned about parameters
@@ -98,17 +112,6 @@
 #'   possible_data_list = possible_data_list)
 #' diagnosis
 #'
-#' # Simple illustration of updating on a probability given a uniform prior.
-#' # MSE and Expected posterior variance  should be both 1/18
-#' diagnosis <- diagnose_strategies(
-#'   analysis_model = make_model("X -> Y"),
-#'   data_strategies = list(
-#' 		take_one =  list(N=1, withins = FALSE, vars = list(c("X")), conditions = TRUE)),
-#'   queries = "X==1",
-#'   fit = fit,
-#'   sims = 2000)
-#' diagnosis
-#'
 #'
 
 diagnose_strategies <- function(reference_model = NULL,
@@ -120,6 +123,7 @@ diagnose_strategies <- function(reference_model = NULL,
 																data_strategies = list(strategy1 = list(N=1, withins = TRUE, vars = NULL, conditions = list(TRUE))),
 																sims = 1000,
 																iter = NULL,
+																chains = 4,
 																refresh = 1000,
 																use_parameters = FALSE,
 																estimands_database = NULL,
@@ -253,9 +257,11 @@ diagnose_strategies <- function(reference_model = NULL,
 														        queries = queries,
 		        												subsets = subsets,
 		        												expand_grid = expand_grid,
-		        												iter = iter,
 		        												use_parameters = use_parameters,
-		        												refresh = refresh)
+		        												iter = iter,
+		        												chains = chains,
+		        												refresh = refresh,
+		        												fit = fit)
 		})
 	}
 

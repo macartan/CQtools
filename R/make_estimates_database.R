@@ -9,6 +9,8 @@
 #' @param subsets list of statements for subsets for queries
 #' @param expand_grid logical, If TRUE combinations of queries and subsets are expanded
 #' @param iter Number of iterations for stan estimation, defaults to 4000
+#' @param chains Number of chains for stan estimation, defaults to 4
+#' @param fit A fitted gbiqq model
 #' @export
 #' @return A list with query output dataframes for each data strategy
 #' @examples
@@ -41,9 +43,11 @@ make_estimates_database <- function(model,
 																		queries = "Y[X=1]>Y[X=0]",
 																		subsets = TRUE,
 																		expand_grid = FALSE,
+																		use_parameters = FALSE,
 																		iter = 4000,
 																		refresh = 0,
-																		use_parameters = FALSE,
+																		chains = NULL,
+																		fit = NULL,
 																		...) {
 
 
@@ -81,7 +85,12 @@ make_estimates_database <- function(model,
 
 		data <- expand_data(data_events, model)
 
-		updated <- gbiqq::gbiqq(model = model, data = data, stan_model = fit, iter = iter, refresh = refresh)
+		updated <- gbiqq::gbiqq(model = model,
+														data = data,
+														stan_model = fit,
+														iter = iter,
+														refresh = refresh,
+														chains = chains)
 
 		data.frame(
 			query_model(updated, queries = queries, using = "posteriors", subsets = subsets, expand_grid = expand_grid),
