@@ -6,7 +6,8 @@
 \usage{
 make_estimates_database(model, given, possible_data = NULL,
   queries = "Y[X=1]>Y[X=0]", subsets = TRUE, expand_grid = FALSE,
-  iter = 4000, use_parameters = FALSE, ...)
+  use_parameters = FALSE, iter = 4000, refresh = 0, chains = NULL,
+  fit = NULL, ...)
 }
 \arguments{
 \item{model}{A causal model as created by \code{make_model}}
@@ -22,6 +23,10 @@ make_estimates_database(model, given, possible_data = NULL,
 \item{expand_grid}{logical, If TRUE combinations of queries and subsets are expanded}
 
 \item{iter}{Number of iterations for stan estimation, defaults to 4000}
+
+\item{chains}{Number of chains for stan estimation, defaults to 4}
+
+\item{fit}{A fitted gbiqq model}
 }
 \value{
 A list with query output dataframes for each data strategy

@@ -7,9 +7,10 @@
 diagnose_strategies(reference_model = NULL, analysis_model,
   given = NULL, queries, subsets = TRUE, expand_grid = FALSE,
   data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars =
-  NULL, conditions = list(TRUE))), sims = 1000, use_parameters = FALSE,
+  NULL, conditions = list(TRUE))), sims = 1000, iter = NULL,
+  chains = 4, refresh = 1000, use_parameters = FALSE,
   estimands_database = NULL, estimates_database = NULL,
-  possible_data_list = NULL, fit = NULL)
+  possible_data_list = NULL, fit = NULL, add_MSE = TRUE)
 }
 \arguments{
 \item{reference_model}{A causal model as created by \code{make_model}}
@@ -27,7 +28,13 @@ diagnose_strategies(reference_model = NULL, analysis_model,
 \item{data_strategies}{list containing arguments for data strategies.
 For instance \code{list(strategy1 = list(N=1, withins = TRUE, vars = NULL, conditions = list(TRUE)))}}
 
-\item{sims}{= 1000,}
+\item{sims}{Integer, number of estimand draws, defaults to max(sims, 4000)}
+
+\item{iter}{Integer, passed to stan, defaults to 4000}
+
+\item{chains}{Integer, passed to stan, defaults to 4}
+
+\item{refresh}{Integer, passed to stand, defaults to 1000,}
 
 \item{use_parameters}{Logical, defaulting to FALSE. If TRUE use  parameter vector rather than priors/posteriors.
 Used in process tracing problems with a single case.
@@ -39,6 +46,8 @@ and the posterior variance is defined on the type, not the parameter (which is k
 \item{estimates_database}{Database of estimates, optional, for speed}
 
 \item{possible_data_list}{Database of possible data, optional, for speed}
+
+\item{add_MSE}{Calculate Logical: Calculate MSE and add to output. FALSE speeds up analysis marginally.}
 }
 \value{
 A dataframe
@@ -50,12 +59,33 @@ Diagnose a data strategy
 
 fit <- fitted_model()
 
-# Example using parameters and  minimal arguments, assumes search for one case
+# Simple illustration of updating on a probability given a uniform prior.
+# MSE and Expected posterior variance should both be 1/18
 diagnosis <- diagnose_strategies(
-  analysis_model = make_model("X->Y"),
-  queries = "Y[X=1]==1",
-  use_parameters = TRUE)
-# Example with minimal arguments, assumes search for one case
+  analysis_model = make_model("X -> Y"),
+  data_strategies = list(
+		take_one =  list(N=1, withins = FALSE, vars = list(c("X")), conditions = TRUE)),
+  queries = "X==1",
+  fit = fit,
+  sims = 2000)
+diagnosis
+
+# Example using parameters and  minimal arguments, assumes search for one case
+# But nothing learned about parameters
+# FLAG: FOr this to function: make_estimates_database has to treat "conditions" as given data
+model <- make_model("X->M->Y") \%>\% set_restrictions(c(decreasing("X","M"), decreasing("M","Y")))
+diagnosis <- diagnose_strategies(
+  analysis_model = model,
+  queries = "Y[X=1]> Y[X=0]",
+  use_parameters = TRUE,
+  given = collapse_data(data.frame(X = 1), model, remove_family = TRUE),
+  data_strategies = list(
+   strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = TRUE),
+   strategy2 = list(N=1, withins = TRUE, vars = list(c("M", "Y")), conditions = TRUE)
+   )
+   )
+
+# Example with minimal arguments, assumes search for one case, updating on parameters
 diagnosis <- diagnose_strategies(
   analysis_model = make_model("X->Y"),
   queries = "Y[X=1]==1",
@@ -113,16 +143,6 @@ diagnosis <- diagnose_strategies(
   queries = "Y[X=1] - Y[X=0]",
   fit = fit,
   possible_data_list = possible_data_list)
-diagnosis
-
-# Troubles shooting example using value of uniformly distributed variable. Asnwer shoul dbe 1/18
-diagnosis <- diagnose_strategies(
-  analysis_model = make_model("X -> Y"),
-  data_strategies = list(
-		take_one =  list(N=1, withins = FALSE, vars = list(c("X")), conditions = TRUE)),
-  queries = "X==1",
-  fit = fit,
-  sims = 8000)
 diagnosis
 
 
