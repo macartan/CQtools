@@ -220,6 +220,8 @@ diagnose_strategies <- function(reference_model = NULL,
 	data_probabilities_list <-
 		lapply(possible_data_list[-length(possible_data_list)], function(possible_data) {
 
+			if(ncol(possible_data) == 3) return(matrix(1, nrow = sims))
+
 			# Arguments generated  prior to applying apply for speed
 			A_w <-  get_data_families(reference_model, drop_impossible = TRUE, drop_none = TRUE, mapping_only = TRUE)[possible_data$event, ]
 			strategy     <- possible_data$strategy
@@ -245,6 +247,7 @@ diagnose_strategies <- function(reference_model = NULL,
 	# For prior existing data is certain
 	data_probabilities_list[["prior"]] <- matrix(1, nrow = sims)
 
+	# Dimensionality fix for case whereprob is a vector: should have nrow = sims)
 
 	# 6 ESTIMATES DISTRIBUTION: ESTIMAND FOR EACH QUERY FROM UPDATED DATA
 	##################################################################################################
