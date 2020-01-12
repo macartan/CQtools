@@ -4,19 +4,25 @@
 \alias{make_possible_data_single}
 \title{Make possible data for a single strategy step}
 \usage{
-make_possible_data_single(model, given = NULL, N = 1,
-  withins = FALSE, conditions = TRUE, vars = NULL)
+make_possible_data_single(
+  model,
+  observed = NULL,
+  N = 1,
+  withins = FALSE,
+  conditions = TRUE,
+  vars = NULL
+)
 }
 \arguments{
 \item{model}{A causal model as created by \code{make_model}}
 
-\item{given}{A data frame in compact form with first column indicating event type and second column indicating number of events of that type.}
+\item{observed}{A data frame in compact form with first column indicating event type and second column indicating number of events of that type.}
 
 \item{N}{Number of node to seek}
 
 \item{withins}{logical Whether to seek node within existing data}
 
-\item{conditions}{A list of character strings indicating for which cases data should be gathered. Options are: (i) to gather additional data on node specified via \code{vars} for any possible cases in the model ("any"), (ii) to gather data in all cases within a given dataset ("within"), or (iii) to specify the subset of cases for which within-case data should be collected (e.g. "Y == 1").}
+\item{conditions}{A list of character strings indicating for which cases data should be gathered. Options are: (i) to gather additional data on node specified via \code{vars} for any possible cases in the model ("any"), (ii) to gather data in all cases within an observed dataset ("within"), or (iii) to specify the subset of cases for which within-case data should be collected (e.g. "Y == 1").}
 
 \item{vars}{Variables to be sought or NA. If NA \code{make_possible_data} gathers data on all node containing NA for the specified data strategy.}
 }
@@ -26,14 +32,14 @@ A dataset
 \description{
 Creates a database of possible data from a data strategy.
 Users can gather additional data on node specified via \code{vars} for any possible cases in the model ("any"). Or they can
-gather data in all cases within a given dataset ("withins"). Or they can specify  the subset of cases for which withins-case data should be collected (e.g. "Y == 1").
+gather data in all cases within an observed dataset ("withins"). Or they can specify  the subset of cases for which withins-case data should be collected (e.g. "Y == 1").
 }
 \examples{
 model <- make_model("X->M->Y")  \%>\%
    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()
 df <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))
-given <- collapse_data(df, model, remove_family = TRUE)
+observed <- collapse_data(df, model, remove_family = TRUE)
 
-make_possible_data_single(model, given = given, vars = "M", within = TRUE, N = 2)
+make_possible_data_single(model, observed = observed, vars = "M", within = TRUE, N = 2)
 }

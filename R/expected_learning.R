@@ -12,12 +12,13 @@
 #' @export
 #' @examples
 #' # Reduction in variance given monotonic X -> M1 -> M2 -> Y model
-#' library(dplyr)
+#'
 #' model <- make_model("X -> M1 -> M2 -> Y") %>%
 #'   set_restrictions(labels = list(M1 = "10", M2 = "10", Y = "10"))
 #' el <- expected_learning(model, query = "Y[X=1]>Y[X=0]",
 #'                   strategy = c("X", "M2"), given = "Y==1")
 #' attr(el, "results_table")
+#'
 #' el2 <- expected_learning(model, query = "Y[X=1]>Y[X=0]",
 #'                   strategy = c("M1"),
 #'                   given = "Y==1 & X==1 & M2==1")
@@ -32,11 +33,8 @@
 #' expected_learning(model, query = "Y[X=1]>Y[X=0]",
 #' strategy = c("M1"), given = "Y==1")
 #'
-#' library(dplyr)
 #' model <-  make_model("S -> C -> Y <- R <- X; X -> C -> R") %>%
-#' set_restrictions(node_restrict =
-#' list(C = "C1110", R = "R0001", Y = "Y0001"),
-#' keep = TRUE)
+#' set_restrictions(labels =  list(C = "1110", R = "0001", Y = "0001"),  keep = TRUE)
 #'
 #' expected_learning(model,
 #' query = list(COE = "(Y[S=0] > Y[S=1])"),
@@ -50,7 +48,7 @@
 
 expected_learning <- function(model, query, strategy = NULL, given = NULL, parameters = NULL){
 
-    prior_estimand <- query_model(model, query = query, subsets = given, using = "parameters")$mean
+    prior_estimand <- query_model(model, query = query, given = given, using = "parameters")$mean
 
  		vars <- model$nodes
 		given0 <- ifelse(is.null(given), " ", given)

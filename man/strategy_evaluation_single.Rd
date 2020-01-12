@@ -4,8 +4,15 @@
 \alias{strategy_evaluation_single}
 \title{Internal function for evaluating a single strategy}
 \usage{
-strategy_evaluation_single(model, strategy, query, given = NULL,
-  prices = NULL, vars = model$nodes, given_vars = NULL)
+strategy_evaluation_single(
+  model,
+  strategy,
+  query,
+  given = NULL,
+  prices = NULL,
+  vars = model$nodes,
+  given_vars = NULL
+)
 }
 \description{
 Internal function for evaluating a single strategy

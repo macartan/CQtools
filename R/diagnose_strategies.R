@@ -2,10 +2,10 @@
 #'
 #' @param reference_model A causal model as created by \code{make_model}
 #' @param analysis_model A causal model as created by \code{make_model}
-#' @param given A data frame with existing data
+#' @param observed A data frame with existing data
 #' @param queries Vector of causal statements characterizing queries
-#' @param subsets Vector of statements refining queries
-#' @param expand_grid Logical, expands grid over query arguments (queries, subsets)
+#' @param given Vector of statements refining queries
+#' @param expand_grid Logical, expands grid over query arguments (queries, given)
 #' @param data_strategies list containing arguments for data strategies.
 #' For instance \code{list(strategy1 = list(N=1, withins = TRUE, vars = NULL, conditions = list(TRUE)))}
 #' @param use_parameters Logical, defaulting to FALSE. If TRUE use  parameter vector rather than priors/posteriors.
@@ -45,7 +45,7 @@
 #'   analysis_model = model,
 #'   queries = "Y[X=1]> Y[X=0]",
 #'   use_parameters = TRUE,
-#'   given = collapse_data(data.frame(X = 1), model, remove_family = TRUE),
+#'   observed = collapse_data(data.frame(X = 1), model, remove_family = TRUE),
 #'   data_strategies = list(
 #'    strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = TRUE),
 #'    strategy2 = list(N=1, withins = TRUE, vars = list(c("M", "Y")), conditions = TRUE)
@@ -67,12 +67,12 @@
 #'    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) %>%
 #'    set_parameter_matrix()
 #'
-#' given   <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
+#' observed   <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
 #'              collapse_data(analysis_model, remove_family = TRUE)
 #'
 #' queries <- list(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]-Y[X=0]")
 #'
-#' subsets <- list(TRUE, "Y==1 & X==1") # Subsets for queries
+#' given <- list(TRUE, "Y==1 & X==1") # given for queries
 #'
 #' data_strategies <- list(
 #'   strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = list("Y==1 & X==1")),
@@ -81,9 +81,9 @@
 #' diagnosis <- diagnose_strategies(
 #'   analysis_model = analysis_model,
 #'   data_strategies = data_strategies,
-#'   given = given,
+#'   observed = observed,
 #'   queries = queries,
-#'   subsets = subsets,
+#'   given = given,
 #'   sims = 4000,
 #'   fit = fit)
 #' diagnosis
@@ -99,7 +99,7 @@
 #' 		N3L1 =  list(N=list(1,2), withins = FALSE, vars = list(c("X", "K", "Y"), c("X", "Y")), conditions = TRUE))
 #'
 #' 	possible_data_list = lapply(data_strategies, function(ds)
-#' 		with(ds, make_possible_data(model = model, given = NULL,
+#' 		with(ds, make_possible_data(model = model, observed = NULL,
 #' 		N = N, withins = withins, conditions = conditions, vars = vars)))
 #'
 #' lapply(possible_data_list, length)
@@ -116,9 +116,9 @@
 
 diagnose_strategies <- function(reference_model = NULL,
 																analysis_model,
-																given = NULL,
+																observed = NULL,
 																queries,
-																subsets = TRUE, # Subsets for queries
+																given = TRUE, # given for queries
 																expand_grid = FALSE, # For queries
 																data_strategies = list(strategy1 = list(N=1, withins = TRUE, vars = NULL, conditions = list(TRUE))),
 																sims = 1000,
@@ -146,11 +146,11 @@ diagnose_strategies <- function(reference_model = NULL,
 	# If not provided, reference model should be the analysis model, updated
 	if(is.null(reference_model)) {
 
-		if(is.null(given) | use_parameters) {
+		if(is.null(observed) | use_parameters) {
 		  reference_model <- analysis_model
 		} else {
-			data <- expand_data(given, analysis_model)
-		  reference_model <- gbiqq(analysis_model, data, stan_model = fit, iter = iter, refresh = 0)
+			data <- expand_data(observed, analysis_model)
+		  reference_model <- gbiqq(analysis_model, data, fit = fit, iter = iter, refresh = 0)
 	}}
 
 	# 2. REFERENCE PARAMETERS DISTRIBUTION
@@ -161,7 +161,7 @@ diagnose_strategies <- function(reference_model = NULL,
 		param_dist <- data.frame(t(get_parameters(reference_model)))
 	} else {
 
-	if(is.null(given) | is.null(reference_model$posterior_distribution)) {
+	if(is.null(observed) | is.null(reference_model$posterior_distribution)) {
 
 			using <- "priors"
 
@@ -193,7 +193,7 @@ diagnose_strategies <- function(reference_model = NULL,
 	estimands_database <- mapply(query_distribution,
 															 model  = list(reference_model),
 															 query  = queries,
-															 subset = subsets,
+															 given = given,
 															 using  = using,
 															 type_distribution = list(type_distribution))
 	}
@@ -206,7 +206,7 @@ diagnose_strategies <- function(reference_model = NULL,
 			possible_data_list = lapply(data_strategies, function(ds)
 				                     with(ds,
 				                     		 make_possible_data(model = reference_model,
-				                     		 									 given = given,
+				                     		 									 observed = observed,
 				                     		 									 N = N,
 				                     		 									 withins = withins,
 				                     		 									 conditions = conditions,
@@ -255,10 +255,10 @@ diagnose_strategies <- function(reference_model = NULL,
 		estimates_database <- lapply(possible_data_list, function(possible_data){
 
 		        make_estimates_database(analysis_model,
-		        												given = given,
+		        												observed = observed,
 		        												possible_data = dplyr::select(possible_data, -strategy),
 														        queries = queries,
-		        												subsets = subsets,
+		        												given = given,
 		        												expand_grid = expand_grid,
 		        												use_parameters = use_parameters,
 		        												iter = iter,
@@ -290,7 +290,7 @@ diagnosis <-
 		# Return
 		df <- data.frame(
 			strategy  = names(data_strategies)[j],
-			estimates_database[[1]][[1]][,c("Query", "Subset")],    # This picks up query and subset labels
+			estimates_database[[1]][[1]][,c("Query", "Given")],    # This picks up query and given labels
 			estimand  = estimands,
 
 			# prob is dim(sims * data_possibilities) estimate is dim(queries * data_possibilities)

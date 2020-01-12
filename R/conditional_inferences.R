@@ -39,16 +39,16 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 	# Conditions
 	conds <- t(apply(vals, 1, function(j) paste(vars, j, sep = "==")))
 	conds[is.na(vals)] <- NA
-	subsets <- apply(conds, 1, function(j) paste(j[!is.na(j)], collapse = " & "))
-	subsets <- as.list(subsets)
-	subsets[subsets==""] <- paste0(model$nodes[1], ">-1") # Guaranteed true
+	given <- apply(conds, 1, function(j) paste(j[!is.na(j)], collapse = " & ")) %>%
+		 as.list
+	given[given==""] <- paste0(model$nodes[1], ">-1") # Guaranteed true
 
-	impossible <- lapply(subsets, function(s) all(!(get_query_types(model, s)$types))) %>% unlist
+	impossible <- lapply(given, function(s) all(!(get_query_types(model, s)$types))) %>% unlist
 
 	if(all(impossible)) return(data.frame(vars, posterior = NA, prob = NA))
 
-	vals     <- vals[!impossible, ]
-	subsets  <- subsets[!impossible]
+	vals   <- vals[!impossible, ]
+	given  <- given[!impossible]
 
 
 	# Calculate estimands
@@ -57,7 +57,7 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 		parameters  = parameters,
 		using = "parameters",
 		queries = query,
-		subsets = subsets)$mean
+		given = given)$mean
 
 	# Cac=lculate data probabilities
 	probs <- unlist(get_data_probs(model, data = vals))

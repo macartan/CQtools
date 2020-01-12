@@ -3,7 +3,6 @@
 \docType{package}
 \name{gbiqqtools}
 \alias{gbiqqtools}
-\alias{gbiqqtools-package}
 \title{gbiqqtools: A package for choosing research strategies.}
 \description{
 gbiqqtools: A package for choosing research strategies.

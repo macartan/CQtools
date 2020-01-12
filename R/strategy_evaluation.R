@@ -71,7 +71,7 @@ strategy_evaluation <- function(model,
 																given = NULL,
 																prices = NULL) {
 
-	prior_mean <- query_model(model = model, queries = query, subsets = given, using = "parameters")$mean
+	prior_mean <- query_model(model = model, queries = query, given = given, using = "parameters")$mean
 	prior_variance <- prior_mean*(1-prior_mean)
   if(is.na(prior_mean)) stop("Prior not defined. Check for impossible conditions.")
 

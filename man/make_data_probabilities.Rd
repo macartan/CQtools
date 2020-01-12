@@ -4,8 +4,14 @@
 \alias{make_data_probabilities}
 \title{Generates a probability distribution over possible data outcomes}
 \usage{
-make_data_probabilities(model, pars, possible_data, A_w = NULL,
-  strategy = NULL, strategy_set = NULL)
+make_data_probabilities(
+  model,
+  pars,
+  possible_data,
+  A_w = NULL,
+  strategy = NULL,
+  strategy_set = NULL
+)
 }
 \arguments{
 \item{model}{A causal model as created by \code{make_model}}

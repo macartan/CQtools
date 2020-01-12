@@ -4,23 +4,33 @@
 \alias{make_estimates_database}
 \title{Generates a database of results using gbiqq over possible data}
 \usage{
-make_estimates_database(model, given, possible_data = NULL,
-  queries = "Y[X=1]>Y[X=0]", subsets = TRUE, expand_grid = FALSE,
-  use_parameters = FALSE, iter = 4000, refresh = 0, chains = NULL,
-  fit = NULL, ...)
+make_estimates_database(
+  model,
+  observed,
+  possible_data = NULL,
+  queries = "Y[X=1]>Y[X=0]",
+  given = TRUE,
+  expand_grid = FALSE,
+  use_parameters = FALSE,
+  iter = 4000,
+  refresh = 0,
+  chains = NULL,
+  fit = NULL,
+  ...
+)
 }
 \arguments{
 \item{model}{A causal model as created by \code{make_model}}
 
-\item{given}{A compact data frame with observe data}
+\item{observed}{A compact data frame with observed data}
 
 \item{possible_data}{A data frame with an events column and possible data columns (if a strategy columns is included it is ignored)}
 
 \item{queries}{list of statements for causal queries}
 
-\item{subsets}{list of statements for subsets for queries}
+\item{given}{list of statements for given for queries}
 
-\item{expand_grid}{logical, If TRUE combinations of queries and subsets are expanded}
+\item{expand_grid}{logical, If TRUE combinations of queries and given are expanded}
 
 \item{iter}{Number of iterations for stan estimation, defaults to 4000}
 
@@ -39,22 +49,22 @@ model <- make_model("X->M->Y")  \%>\%
    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()
 
-given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
+observed <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
         collapse_data(model, remove_family = TRUE)
 
 
-possible_data <- make_possible_data(model, given, vars = "M", condition = "X==1 & Y==1")
+possible_data <- make_possible_data(model, observed, vars = "M", condition = "X==1 & Y==1")
 
 estimates_database <- make_estimates_database(
       model,
-      given = given,
+      observed = observed,
       possible_data = possible_data,
       queries = "Y[X=1]>Y[X=0]")
 
 estimates_database <- make_estimates_database(
       model,
-      given = given,
+      observed = observed,
       possible_data = possible_data,
       queries = c(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]>Y[X=0]"),
-      subsets = c(TRUE, "Y==1 & X==1"))
+      given = c(TRUE, "Y==1 & X==1"))
 }

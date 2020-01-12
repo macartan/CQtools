@@ -4,26 +4,39 @@
 \alias{diagnose_strategies}
 \title{Diagnose a data strategy}
 \usage{
-diagnose_strategies(reference_model = NULL, analysis_model,
-  given = NULL, queries, subsets = TRUE, expand_grid = FALSE,
-  data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars =
-  NULL, conditions = list(TRUE))), sims = 1000, iter = NULL,
-  chains = 4, refresh = 1000, use_parameters = FALSE,
-  estimands_database = NULL, estimates_database = NULL,
-  possible_data_list = NULL, fit = NULL, add_MSE = TRUE)
+diagnose_strategies(
+  reference_model = NULL,
+  analysis_model,
+  observed = NULL,
+  queries,
+  given = TRUE,
+  expand_grid = FALSE,
+  data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars = NULL, conditions
+    = list(TRUE))),
+  sims = 1000,
+  iter = NULL,
+  chains = 4,
+  refresh = 1000,
+  use_parameters = FALSE,
+  estimands_database = NULL,
+  estimates_database = NULL,
+  possible_data_list = NULL,
+  fit = NULL,
+  add_MSE = TRUE
+)
 }
 \arguments{
 \item{reference_model}{A causal model as created by \code{make_model}}
 
 \item{analysis_model}{A causal model as created by \code{make_model}}
 
-\item{given}{A data frame with existing data}
+\item{observed}{A data frame with existing data}
 
 \item{queries}{Vector of causal statements characterizing queries}
 
-\item{subsets}{Vector of statements refining queries}
+\item{given}{Vector of statements refining queries}
 
-\item{expand_grid}{Logical, expands grid over query arguments (queries, subsets)}
+\item{expand_grid}{Logical, expands grid over query arguments (queries, given)}
 
 \item{data_strategies}{list containing arguments for data strategies.
 For instance \code{list(strategy1 = list(N=1, withins = TRUE, vars = NULL, conditions = list(TRUE)))}}
@@ -78,7 +91,7 @@ diagnosis <- diagnose_strategies(
   analysis_model = model,
   queries = "Y[X=1]> Y[X=0]",
   use_parameters = TRUE,
-  given = collapse_data(data.frame(X = 1), model, remove_family = TRUE),
+  observed = collapse_data(data.frame(X = 1), model, remove_family = TRUE),
   data_strategies = list(
    strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = TRUE),
    strategy2 = list(N=1, withins = TRUE, vars = list(c("M", "Y")), conditions = TRUE)
@@ -100,12 +113,12 @@ analysis_model <-
    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()
 
-given   <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
+observed   <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
              collapse_data(analysis_model, remove_family = TRUE)
 
 queries <- list(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]-Y[X=0]")
 
-subsets <- list(TRUE, "Y==1 & X==1") # Subsets for queries
+given <- list(TRUE, "Y==1 & X==1") # given for queries
 
 data_strategies <- list(
   strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = list("Y==1 & X==1")),
@@ -114,9 +127,9 @@ data_strategies <- list(
 diagnosis <- diagnose_strategies(
   analysis_model = analysis_model,
   data_strategies = data_strategies,
-  given = given,
+  observed = observed,
   queries = queries,
-  subsets = subsets,
+  given = given,
   sims = 4000,
   fit = fit)
 diagnosis
@@ -132,7 +145,7 @@ data_strategies = list(
 		N3L1 =  list(N=list(1,2), withins = FALSE, vars = list(c("X", "K", "Y"), c("X", "Y")), conditions = TRUE))
 
 	possible_data_list = lapply(data_strategies, function(ds)
-		with(ds, make_possible_data(model = model, given = NULL,
+		with(ds, make_possible_data(model = model, observed = NULL,
 		N = N, withins = withins, conditions = conditions, vars = vars)))
 
 lapply(possible_data_list, length)

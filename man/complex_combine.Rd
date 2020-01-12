@@ -17,7 +17,7 @@ Used to combine permutations of rows of dataframes in a list
  data.frame(event = c("c", "d", "e"), y = 5:7, z = 8:10, q = 11:13))
  complex_combine(data_list)
 
-data_list <- list(
+ data_list <- list(
  data.frame(event = c("a", "b"), w = 1:2, x = 3:4),
  data.frame(event = c("c", "d", "b"), y = 5:7, z = 8:10, q = 11:13))
  complex_combine(data_list)

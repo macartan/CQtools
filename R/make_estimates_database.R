@@ -3,11 +3,11 @@
 #' This function can run many models and can take a long time depending on the size of possible data.
 #'
 #' @param model A causal model as created by \code{make_model}
-#' @param given A compact data frame with observe data
+#' @param observed A compact data frame with observed data
 #' @param possible_data A data frame with an events column and possible data columns (if a strategy columns is included it is ignored)
 #' @param queries list of statements for causal queries
-#' @param subsets list of statements for subsets for queries
-#' @param expand_grid logical, If TRUE combinations of queries and subsets are expanded
+#' @param given list of statements for given for queries
+#' @param expand_grid logical, If TRUE combinations of queries and given are expanded
 #' @param iter Number of iterations for stan estimation, defaults to 4000
 #' @param chains Number of chains for stan estimation, defaults to 4
 #' @param fit A fitted gbiqq model
@@ -18,30 +18,30 @@
 #'    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) %>%
 #'    set_parameter_matrix()
 #'
-#' given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
+#' observed <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
 #'         collapse_data(model, remove_family = TRUE)
 #'
 #'
-#' possible_data <- make_possible_data(model, given, vars = "M", condition = "X==1 & Y==1")
+#' possible_data <- make_possible_data(model, observed, vars = "M", condition = "X==1 & Y==1")
 #'
 #' estimates_database <- make_estimates_database(
 #'       model,
-#'       given = given,
+#'       observed = observed,
 #'       possible_data = possible_data,
 #'       queries = "Y[X=1]>Y[X=0]")
 #'
 #' estimates_database <- make_estimates_database(
 #'       model,
-#'       given = given,
+#'       observed = observed,
 #'       possible_data = possible_data,
 #'       queries = c(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]>Y[X=0]"),
-#'       subsets = c(TRUE, "Y==1 & X==1"))
+#'       given = c(TRUE, "Y==1 & X==1"))
 
 make_estimates_database <- function(model,
-																		given,
+																		observed,
 																		possible_data = NULL,
 																		queries = "Y[X=1]>Y[X=0]",
-																		subsets = TRUE,
+																		given = TRUE,
 																		expand_grid = FALSE,
 																		use_parameters = FALSE,
 																		iter = 4000,
@@ -51,7 +51,7 @@ make_estimates_database <- function(model,
 																		...) {
 
 
-	if(is.null(possible_data)) possible_data <- make_possible_data(model, given, ...)
+	if(is.null(possible_data)) possible_data <- make_possible_data(model, observed, ...)
 	if("strategy" %in% names(possible_data)) possible_data <- dplyr::select(possible_data, -strategy)
 
 	if(use_parameters){
@@ -62,9 +62,8 @@ make_estimates_database <- function(model,
 			query_model(model,
 									queries = queries,
 									using = "parameters",
-									subset = subsets,
-									expand_grid =
-									expand_grid),
+									given = given,
+									expand_grid = expand_grid),
 			data_pattern = j -1
 		)})
 		)
@@ -87,13 +86,17 @@ make_estimates_database <- function(model,
 
 		updated <- gbiqq::gbiqq(model = model,
 														data = data,
-														stan_model = fit,
+														fit = fit,
 														iter = iter,
 														refresh = refresh,
 														chains = chains)
 
 		data.frame(
-			query_model(updated, queries = queries, using = "posteriors", subsets = subsets, expand_grid = expand_grid),
+			query_model(updated,
+									queries = queries,
+									using = "posteriors",
+									given = given,
+									expand_grid = expand_grid),
 			data_pattern = j -1
 			)
 

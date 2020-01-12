@@ -4,8 +4,7 @@
 \alias{strategy_evaluation}
 \title{Strategy evaluation}
 \usage{
-strategy_evaluation(model, strategies, query, given = NULL,
-  prices = NULL)
+strategy_evaluation(model, strategies, query, given = NULL, prices = NULL)
 }
 \arguments{
 \item{strategies}{s x 3 matrix of strstegies. Each strategy is a triple that indicates (a) first node sought (b) action if first node is 0 (c) action if first node = 1}
