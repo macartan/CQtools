@@ -48,12 +48,7 @@
 #' make_possible_data(model, observed, within = TRUE, N = 2, conditions = "X==1 & Y==1", vars = "M")
 #'
 #' # Look for data on K but not M
-#' model <- make_model("X->M->Y <-K")   %>%
-#'    set_parameter_matrix()
-#' df <- data.frame(X = c(0,0,1,1,1), K = NA, M = NA, Y = c(0,0,0,1,1))
-#' observed <- collapse_data(df, model)[, -2]
-#' make_possible_data(model, observed, within = TRUE, N = 1, vars = "K")
-#'
+qawswsZ#'
 #'
 #' # From book
 #'

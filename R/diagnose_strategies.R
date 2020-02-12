@@ -34,7 +34,7 @@
 #' 		take_one =  list(N=1, withins = FALSE, vars = list(c("X")), conditions = TRUE)),
 #'   queries = "X==1",
 #'   fit = fit,
-#'   sims = 2000)
+#'   sims = 4000)
 #' diagnosis
 #'
 #' # Example using parameters and  minimal arguments, assumes search for one case
@@ -213,9 +213,22 @@ diagnose_strategies <- function(reference_model = NULL,
 				                     		 									 vars = vars)))
 		}
 
-  # 5 POSSIBLE DATA DISTRIBUTION: FOR EACH STRATEGY nrow(possible_data) * sims matrix of data probabilities
+  # 5 PROB DISTRIBUTION ON POSSIBLE DATA: FOR EACH STRATEGY nrow(possible_data) * sims matrix of data probabilities
 	##################################################################################################
   ## FLAG: THIS FUNCTION IS THE SLOWEST STEP: HOW TO SPEED UP?
+	A_map <-  get_data_families(reference_model, drop_impossible = TRUE, drop_none = TRUE, mapping_only = TRUE)
+
+	# prior_ref_dist <- get_prior_distribution(reference_model)
+
+	# probability of given data for each parameter possibility
+	# if(!is.null(observed)) {
+	# 	p_denom <- apply(param_dist, 1, function(pars) {
+	# 			make_data_probabilities(
+	# 		model = reference_model,
+	# 		pars = pars,
+	# 		possible_data = collapse_data(expand_data(observed, model), model))
+	# 	})
+	# 	}
 
 	data_probabilities_list <-
 		lapply(possible_data_list[-length(possible_data_list)], function(possible_data) {
@@ -223,20 +236,24 @@ diagnose_strategies <- function(reference_model = NULL,
 			if(ncol(possible_data) == 3) return(matrix(1, nrow = sims))
 
 			# Arguments generated  prior to applying apply for speed
-			A_w <-  get_data_families(reference_model, drop_impossible = TRUE, drop_none = TRUE, mapping_only = TRUE)[possible_data$event, ]
+			A_w          <-  A_map[possible_data$event, ]
 			strategy     <- possible_data$strategy
 			strategy_set <- unique(possible_data$strategy)
 
-	p <- apply(param_dist, 1, function(pars) {
-			make_data_probabilities(
+
+#	p <- apply(prior_ref_dist, 1, function(pars) {
+p <- apply(param_dist, 1, function(pars) {
+					make_data_probabilities(
 				model = reference_model,
 				pars = pars,
 				possible_data = possible_data,
 				A_w  = A_w,
 				strategy = strategy,
-				strategy_set = strategy_set)
+				strategy_set = strategy_set,
+				normalize= TRUE)
 			}
 			)
+  # if(!is.null(observed)) p <- apply(p, 1, function(j) j/p_denom)
 
 	# p should be of dimensionality simulations x data_possibilities
 	if(use_parameters) return(matrix(p, nrow = 1))

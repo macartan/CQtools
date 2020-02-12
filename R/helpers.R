@@ -181,3 +181,45 @@ prob_par1_given_par2 <- function(par1, par2, nodal_type, P, type_prob) {
 }
 
 
+
+#'combine two lists by names
+#' # FLAG : CHECK EXAMPLE BELOW
+#' @param list1 a list
+#' @param list2 a list typically different than list1
+#' @examples
+#' list1 = list(A = 1:3, B = 4)
+#' list2 = list(A = 1, C = 1:2)
+#' gbiqqtools:::combine_lists(list1, list2)
+#'
+combine_lists <- function(list1, list2) {
+
+	matches <- names(list1) %in% names(list2)
+	matching_names <- names(list1)[matches]
+	matches2 <- names(list2) %in% names(list1)
+
+	if (any(matches)) {
+		combined_list <- sapply(matching_names, function(nam) {
+			out <- c(list1[[nam]], list2[[nam]])
+			out[!duplicated(names(out))]
+		}, simplify = FALSE)
+
+		combined_list <- c(combined_list, list1[!matches])
+		combined_list <- c(combined_list, list2[!matches2])
+	} else {
+		combined_list <- c(list1, list2)
+	}
+
+	combined_list
+}
+
+
+
+# helper from hadley
+# https://stackoverflow.com/questions/4752275/test-for-equality-among-all-elements-of-a-single-vector
+zero_range <- function(x, tol = .Machine$double.eps^0.5) {
+	if (length(x) == 1)
+		return(TRUE)
+	x <- range(x)/mean(x)
+	isTRUE(all.equal(x[1], x[2], tolerance = tol))
+}
+
