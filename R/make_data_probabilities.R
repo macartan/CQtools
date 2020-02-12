@@ -8,6 +8,7 @@
 #' @param A_w Ambiguity matrix for data types, optional
 #' @param strategy vector providing data strategy set for event, optional
 #' @param strategy_set vector containing possible strategies, optional
+#' @param normalize logical if TRUE probabilites are normalized to sum to 1
 #' @export
 #' @return A dataset
 #' @examples
@@ -21,13 +22,13 @@
 #' possible_data <- make_possible_data(model, given = given, condition = "X==1 & Y==1", vars = "M", within = TRUE )
 #' make_data_probabilities(model, pars = get_parameters(model), possible_data)
 #'
-make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, strategy = NULL, strategy_set = NULL) {
+make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, strategy = NULL, strategy_set = NULL, normalize = FALSE) {
 
 	# Check data consistency
 	if(!all(names(possible_data)[1:2] == c("event", "strategy"))) stop("possible_data should lead with event and strategy columns")
 
 	# If only one possible data, return 1
-	if(ncol(possible_data)==3) return(1)
+	if(normalize & ncol(possible_data)==3) return(1)
 
 	# Ambiguity matrix for data types
 	if(is.null(A_w)) A_w <- 	get_data_families(model, drop_impossible = TRUE, drop_none = TRUE, mapping_only = TRUE)[possible_data$event, ]
@@ -45,7 +46,10 @@ make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, str
 	if(!is.null(nrow(x))) x <- apply(x, 2, prod)
 
 	# Normalization
-	x/sum(x)
+	if(normalize) x <- x/sum(x)
+
+	x
+
 }
 
 
