@@ -48,7 +48,7 @@
 #' make_possible_data(model, observed, within = TRUE, N = 2, conditions = "X==1 & Y==1", vars = "M")
 #'
 #' # Look for data on K but not M
-qawswsZ#'
+#'
 #'
 #' # From book
 #'
