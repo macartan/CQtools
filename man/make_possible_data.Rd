@@ -65,18 +65,13 @@ make_possible_data(model, observed, vars = "M", within = TRUE, N = 7)
 # Partly possible: only one step completed
 model2 <- make_model("A -> B -> C -> D")
 observed2 <- data.frame(A = c(0,0,0,1,1,1), B = NA, C = NA, D = c(0,0,1,0,1,1)) \%>\%
-  collapse_data(model2, remove_family = TRUE)
+  collapse_data(model2, drop_family = TRUE)
 make_possible_data(model2, observed2, vars = list("B", "C"), within = TRUE, N = list(1,1), conditions = list("A==D", "A==D & B==1"))
 
 # Within conditions
 make_possible_data(model, observed, within = TRUE, N = 2, conditions = "X==1 & Y==1", vars = "M")
 
 # Look for data on K but not M
-model <- make_model("X->M->Y <-K")   \%>\%
-   set_parameter_matrix()
-df <- data.frame(X = c(0,0,1,1,1), K = NA, M = NA, Y = c(0,0,0,1,1))
-observed <- collapse_data(df, model)[, -2]
-make_possible_data(model, observed, within = TRUE, N = 1, vars = "K")
 
 
 # From book
@@ -85,11 +80,11 @@ model <- make_model("X->M->Y")  \%>\%
  set_restrictions(c("(Y[M=1]<Y[M=0])", "(M[X=1]<M[X=0])"))
 
 	observed <-  collapse_data(data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)),
-													model, remove_family = TRUE)
+													model, drop_family = TRUE)
 	make_possible_data(model,
  	observed = observed,
  	vars = list("M", "M", "M", "M"),
- 	within = TRUE,
+ 	withins = TRUE,
  	N = list(1,1,1,1),
  	conditions = list("X==0 & Y==0", "X==1 & Y==0", "X==0 & Y==1", "X==1 & Y==1"))
 }

@@ -10,7 +10,8 @@ make_data_probabilities(
   possible_data,
   A_w = NULL,
   strategy = NULL,
-  strategy_set = NULL
+  strategy_set = NULL,
+  normalize = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ make_data_probabilities(
 \item{strategy}{vector providing data strategy set for event, optional}
 
 \item{strategy_set}{vector containing possible strategies, optional}
+
+\item{normalize}{logical if TRUE probabilites are normalized to sum to 1}
 }
 \value{
 A dataset
@@ -39,8 +42,8 @@ possible_data <- make_possible_data(model, N= 2, vars = list(model$node), within
 make_data_probabilities(model, pars = get_parameters(model), possible_data)
 
 given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
-  collapse_data(model, remove_family = TRUE)
-possible_data <- make_possible_data(model, given = given, condition = "X==1 & Y==1", vars = "M", within = TRUE )
+  collapse_data(model, drop_family = TRUE)
+possible_data <- make_possible_data(model, observed = given, condition = "X==1 & Y==1", vars = "M", within = TRUE )
 make_data_probabilities(model, pars = get_parameters(model), possible_data)
 
 }

@@ -21,7 +21,6 @@ diagnose_strategies(
   estimands_database = NULL,
   estimates_database = NULL,
   possible_data_list = NULL,
-  fit = NULL,
   add_MSE = TRUE
 )
 }
@@ -70,8 +69,6 @@ Diagnose a data strategy
 }
 \examples{
 
-fit <- fitted_model()
-
 # Simple illustration of updating on a probability given a uniform prior.
 # MSE and Expected posterior variance should both be 1/18
 diagnosis <- diagnose_strategies(
@@ -79,8 +76,7 @@ diagnosis <- diagnose_strategies(
   data_strategies = list(
 		take_one =  list(N=1, withins = FALSE, vars = list(c("X")), conditions = TRUE)),
   queries = "X==1",
-  fit = fit,
-  sims = 2000)
+  sims = 4000)
 diagnosis
 
 # Example using parameters and  minimal arguments, assumes search for one case
@@ -91,7 +87,7 @@ diagnosis <- diagnose_strategies(
   analysis_model = model,
   queries = "Y[X=1]> Y[X=0]",
   use_parameters = TRUE,
-  observed = collapse_data(data.frame(X = 1), model, remove_family = TRUE),
+  observed = collapse_data(data.frame(X = 1), model, drop_family = TRUE),
   data_strategies = list(
    strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = TRUE),
    strategy2 = list(N=1, withins = TRUE, vars = list(c("M", "Y")), conditions = TRUE)
@@ -106,7 +102,6 @@ diagnosis <- diagnose_strategies(
 
 # Example comparing two data strategies with two queries
  rm(list = ls())
-if(!exists("fit")) fit  <- fitted_model()
 
 analysis_model <-
    make_model("X->M->Y")  \%>\%
@@ -114,7 +109,7 @@ analysis_model <-
    set_parameter_matrix()
 
 observed   <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
-             collapse_data(analysis_model, remove_family = TRUE)
+             collapse_data(analysis_model, drop_family = TRUE)
 
 queries <- list(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]-Y[X=0]")
 

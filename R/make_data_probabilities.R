@@ -18,8 +18,8 @@
 #' make_data_probabilities(model, pars = get_parameters(model), possible_data)
 #'
 #' given <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
-#'   collapse_data(model, remove_family = TRUE)
-#' possible_data <- make_possible_data(model, given = given, condition = "X==1 & Y==1", vars = "M", within = TRUE )
+#'   collapse_data(model, drop_family = TRUE)
+#' possible_data <- make_possible_data(model, observed = given, condition = "X==1 & Y==1", vars = "M", within = TRUE )
 #' make_data_probabilities(model, pars = get_parameters(model), possible_data)
 #'
 make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, strategy = NULL, strategy_set = NULL, normalize = FALSE) {
@@ -31,7 +31,7 @@ make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, str
 	if(normalize & ncol(possible_data)==3) return(1)
 
 	# Ambiguity matrix for data types
-	if(is.null(A_w)) A_w <- 	get_data_families(model, drop_impossible = TRUE, drop_none = TRUE, mapping_only = TRUE)[possible_data$event, ]
+	if(is.null(A_w)) A_w <- 	get_data_families(model, drop_impossible = TRUE, drop_all_NA = FALSE, mapping_only = TRUE)[possible_data$event, ]
 
 	w_full = A_w %*% (get_event_prob(model, parameters = as.numeric(pars)))
 
@@ -54,42 +54,3 @@ make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, str
 
 
 
-
-#' Generates an "average" probability distribution over possible data outcomes
-#'
-#' NOTE: This needs to be checked for whether it is taking account of strategy probabilities properly
-#'
-#' @param model A causal model as created by \code{make_model}
-#' @param possible_data An events dataframe
-#' @param using String, indicating `priors` or `posteriors`
-#' @param sims Integer, number of simulations
-#' @export
-#' @return A dataset
-#' @export
-#' @examples
-#' library(dplyr)
-#' model <- make_model("X->M->Y")
-#' possible_data <- make_possible_data(model, vars = list(c("X", "Y")), N= 1, within = FALSE)
-#' average_data_probabilities(model, possible_data, using = "priors", sims = 10)
-#'
-#'
-average_data_probabilities <- function(model, possible_data, using, sims = 500) {
-
-  # Predefined for speed
-	A_w <- (get_likelihood_helpers(model)$A_w)[possible_data$event, ]
-	strategy     <- possible_data$strategy
-	strategy_set <- unique(possible_data$strategy)
-
-	x <- replicate(sims, {
-	  make_data_probabilities(
-			model,
-			pars = draw_parameters(model, using = using),
-			possible_data = possible_data,
-			A_w  = A_w,
-			strategy = strategy,
-			strategy_set = strategy_set
-			)
-			}
-		)
-	apply(x, 1, mean)
- }

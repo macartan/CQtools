@@ -32,7 +32,7 @@ conditional_inferences(model, query = "Y[X=1]>Y[X=0]", given = "Y==1")
 # Running example
 model <- make_model("S -> C -> Y <- R <- X; X -> C -> R") \%>\%
    set_restrictions(labels =
-   list(C = "C1110", R = "R0001", Y = "Y0001"), keep = TRUE)
+   list(C = "1110", R = "0001", Y = "0001"), keep = TRUE)
 
 conditional_inferences(model, query = list(COE = "(Y[S=0] > Y[S=1])"),
 given = "Y==1 & S==0")

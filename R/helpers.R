@@ -52,7 +52,7 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 	possible_findings <- perm(rep(1, length(vars)))
 	df <- df %>% slice(rep(1:n(), each = nrow(possible_findings)))
 	df[vars] <- possible_findings
-	df <- collapse_data(df, model, remove_family = TRUE)
+	df <- collapse_data(df, model, drop_family = TRUE)
 	# Assign n across new possible finer events
 	new_events <- cbind(event = df[df$count ==1, "event"],
 											gbiqqtools:::allocations(buckets[row, column], sum(df$count)))
@@ -86,7 +86,7 @@ all_possible <- function(model, N, vars = NULL, condition = TRUE, possible_data 
 
 	if(!all(is.na(vars))) df[, !names(df) %in% vars] <- NA
 
-	df  <- collapse_data(df, model, remove_family = TRUE)
+	df  <- collapse_data(df, model, drop_family = TRUE)
 
 	possible_data <- gbiqqtools:::allocations(N, n = sum(df$count>0))
 

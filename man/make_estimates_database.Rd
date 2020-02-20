@@ -15,7 +15,6 @@ make_estimates_database(
   iter = 4000,
   refresh = 0,
   chains = NULL,
-  fit = NULL,
   ...
 )
 }
@@ -50,7 +49,7 @@ model <- make_model("X->M->Y")  \%>\%
    set_parameter_matrix()
 
 observed <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) \%>\%
-        collapse_data(model, remove_family = TRUE)
+        collapse_data(model, drop_family = TRUE)
 
 
 possible_data <- make_possible_data(model, observed, vars = "M", condition = "X==1 & Y==1")

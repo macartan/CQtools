@@ -12,9 +12,9 @@
 #' model <-
 #'   make_model("S -> C -> Y <- R <- X; X -> C -> R") %>%
 #'      set_restrictions(
-#'      labels = list(C = c("C1110", "C1111"),
-#'                    R = c("R0001", "R0000"),
-#'                    Y = c("Y0001")), keep = TRUE)
+#'      labels = list(C = c("1110", "1111"),
+#'                    R = c("0001", "0000"),
+#'                    Y = c("0001")), keep = TRUE)
 #'
 #' # Evaluation of single strategy
 #' strategy_evaluation(model,

@@ -15,11 +15,11 @@ get_data_probs <- function(model, data, parameters = NULL){
 
 	if(is.null(parameters)) parameters <- get_parameters(model)
 
-	# events  <- collapse_data(data = data, model = model)$event
-	A_w     <- get_data_families(model, mapping_only = TRUE, drop_none = FALSE)
+	events  <- collapse_data(data = data, model = model)$event
+	A_w     <- get_data_families(model, mapping_only = TRUE, drop_all_NA = FALSE)
 	probs   <- A_w %*% get_event_prob(model, parameters = parameters)
 	np      <- rownames(probs)
-	unlist(sapply(rownames(data), function(j) probs[np==j]))
+	unlist(sapply(events, function(j) probs[np==j]))
 }
 
 

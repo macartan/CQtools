@@ -39,7 +39,7 @@ model <- make_model("X->M->Y")  \%>\%
    set_restrictions(c("Y[M=1]<Y[M=0]", "M[X=1]<M[X=0]")) \%>\%
    set_parameter_matrix()
 df <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1))
-observed <- collapse_data(df, model, remove_family = TRUE)
+observed <- collapse_data(df, model, drop_family = TRUE)
 
-make_possible_data_single(model, observed = observed, vars = "M", within = TRUE, N = 2)
+make_possible_data_single(model, observed = observed, vars = "M", withins = TRUE, N = 2)
 }

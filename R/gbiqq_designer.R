@@ -27,7 +27,6 @@
 #'
 #' # Estimation and diagnosis
 #' options(mc.cores = parallel::detectCores())
-#' rstan_options(auto_write = TRUE)
 #' mate <- draw_estimates(my_design)
 #' diag <- diagnose_design(my_design, sims = 2)
 #' diag
@@ -42,8 +41,6 @@ gbiqq_designer <- function(
 	fit = NULL,
 	...
 ) {
-
-  if(is.null(fit)) fit <- fitted_model()
 
 	args <- list(...)
 	arg_names <- names(args)
@@ -79,7 +76,7 @@ gbiqq_designer <- function(
 
 	# Estimator runs gbiqq assuming answer-strategy model
 	estimate  <- declare_estimator(handler = function(data) {
-		updated <- update_model(model = analysis_model,  data = data, fit = fit)
+		updated <- update_model(model = analysis_model,  data = data)
 		value   <- do.call(query_model, c(model = list(updated),
 																		query = list(query),
 																		using = "posteriors",

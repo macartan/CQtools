@@ -19,7 +19,7 @@
 #'    set_parameter_matrix()
 #'
 #' observed <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
-#'         collapse_data(model, remove_family = TRUE)
+#'         collapse_data(model, drop_family = TRUE)
 #'
 #'
 #' possible_data <- make_possible_data(model, observed, vars = "M", condition = "X==1 & Y==1")
@@ -47,7 +47,6 @@ make_estimates_database <- function(model,
 																		iter = 4000,
 																		refresh = 0,
 																		chains = NULL,
-																		fit = NULL,
 																		...) {
 
 
@@ -70,11 +69,6 @@ make_estimates_database <- function(model,
 	  }
 
 
-	# If parameters not used then model is updated using gbiqq
-
-	if(!exists("fit")) fit  <- fitted_model()
-
-
 	## Update model for each possible data type and query updated model
 	## Note: 2 here only because of particular shape of possible data
 
@@ -86,7 +80,6 @@ make_estimates_database <- function(model,
 
 		updated <- gbiqq::gbiqq(model = model,
 														data = data,
-														fit = fit,
 														iter = iter,
 														refresh = refresh,
 														chains = chains)
@@ -103,3 +96,4 @@ make_estimates_database <- function(model,
 	})
 
 }
+

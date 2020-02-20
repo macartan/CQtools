@@ -24,8 +24,6 @@
 #' @return A dataframe
 #' @examples
 #'
-#' fit <- fitted_model()
-#'
 #' # Simple illustration of updating on a probability given a uniform prior.
 #' # MSE and Expected posterior variance should both be 1/18
 #' diagnosis <- diagnose_strategies(
@@ -33,7 +31,6 @@
 #'   data_strategies = list(
 #' 		take_one =  list(N=1, withins = FALSE, vars = list(c("X")), conditions = TRUE)),
 #'   queries = "X==1",
-#'   fit = fit,
 #'   sims = 4000)
 #' diagnosis
 #'
@@ -45,7 +42,7 @@
 #'   analysis_model = model,
 #'   queries = "Y[X=1]> Y[X=0]",
 #'   use_parameters = TRUE,
-#'   observed = collapse_data(data.frame(X = 1), model, remove_family = TRUE),
+#'   observed = collapse_data(data.frame(X = 1), model, drop_family = TRUE),
 #'   data_strategies = list(
 #'    strategy1 = list(N=1, withins = TRUE, vars = "M", conditions = TRUE),
 #'    strategy2 = list(N=1, withins = TRUE, vars = list(c("M", "Y")), conditions = TRUE)
@@ -60,7 +57,6 @@
 #'
 #'# Example comparing two data strategies with two queries
 #'  rm(list = ls())
-#'	if(!exists("fit")) fit  <- fitted_model()
 #'
 #'	analysis_model <-
 #'    make_model("X->M->Y")  %>%
@@ -68,7 +64,7 @@
 #'    set_parameter_matrix()
 #'
 #' observed   <- data.frame(X = c(0,0,0,1,1,1), M = NA, Y = c(0,0,1,0,1,1)) %>%
-#'              collapse_data(analysis_model, remove_family = TRUE)
+#'              collapse_data(analysis_model, drop_family = TRUE)
 #'
 #' queries <- list(ATE = "Y[X=1]-Y[X=0]", PC = "Y[X=1]-Y[X=0]")
 #'
@@ -129,11 +125,9 @@ diagnose_strategies <- function(reference_model = NULL,
 																estimands_database = NULL,
 																estimates_database = NULL,
 																possible_data_list = NULL,
-																fit = NULL,
 																add_MSE = TRUE # Add MSE
 																){
 	# Housekeeping
-	if(is.null(fit) & !(use_parameters)) fit  <- gbiqq::fitted_model()
   if(is.null(iter)) iter = max(sims, 4000)
 
   if(use_parameters) sims <- 1  # If parameters are used there is no simulation
@@ -150,7 +144,7 @@ diagnose_strategies <- function(reference_model = NULL,
 		  reference_model <- analysis_model
 		} else {
 			data <- expand_data(observed, analysis_model)
-		  reference_model <- gbiqq(analysis_model, data, fit = fit, iter = iter, refresh = 0)
+		  reference_model <- gbiqq(analysis_model, data, iter = iter, refresh = 0)
 	}}
 
 	# 2. REFERENCE PARAMETERS DISTRIBUTION
@@ -216,7 +210,7 @@ diagnose_strategies <- function(reference_model = NULL,
   # 5 PROB DISTRIBUTION ON POSSIBLE DATA: FOR EACH STRATEGY nrow(possible_data) * sims matrix of data probabilities
 	##################################################################################################
   ## FLAG: THIS FUNCTION IS THE SLOWEST STEP: HOW TO SPEED UP?
-	A_map <-  get_data_families(reference_model, drop_impossible = TRUE, drop_none = TRUE, mapping_only = TRUE)
+	A_map <-  get_data_families(reference_model, drop_impossible = TRUE, drop_all_NA = TRUE, mapping_only = TRUE)
 
 	# prior_ref_dist <- get_prior_distribution(reference_model)
 
@@ -280,8 +274,7 @@ p <- apply(param_dist, 1, function(pars) {
 		        												use_parameters = use_parameters,
 		        												iter = iter,
 		        												chains = chains,
-		        												refresh = refresh,
-		        												fit = fit)
+		        												refresh = refresh)
 		})
 	}
 
