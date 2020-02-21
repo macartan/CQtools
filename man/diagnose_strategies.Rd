@@ -25,15 +25,15 @@ diagnose_strategies(
 )
 }
 \arguments{
-\item{reference_model}{A causal model as created by \code{make_model}}
+\item{reference_model}{A causal model as created by \code{\link[gbiqq]{make_model}}}
 
-\item{analysis_model}{A causal model as created by \code{make_model}}
+\item{analysis_model}{A causal model as created by \code{\link[gbiqq]{make_model}}}
 
-\item{observed}{A data frame with existing data}
+\item{observed}{A data.frame with observations.}
 
 \item{queries}{Vector of causal statements characterizing queries}
 
-\item{given}{Vector of statements refining queries}
+\item{given}{A conditioning set as a character string that evaluates to a logical, for example 'Y==1'}
 
 \item{expand_grid}{Logical, expands grid over query arguments (queries, given)}
 

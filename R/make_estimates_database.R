@@ -2,15 +2,10 @@
 #'
 #' This function can run many models and can take a long time depending on the size of possible data.
 #'
-#' @param model A causal model as created by \code{make_model}
-#' @param observed A compact data frame with observed data
+#' @inheritParams gbiqqtools_internal_inherit_params
 #' @param possible_data A data frame with an events column and possible data columns (if a strategy columns is included it is ignored)
 #' @param queries list of statements for causal queries
-#' @param given list of statements for given for queries
 #' @param expand_grid logical, If TRUE combinations of queries and given are expanded
-#' @param iter Number of iterations for stan estimation, defaults to 4000
-#' @param chains Number of chains for stan estimation, defaults to 4
-#' @param fit A fitted gbiqq model
 #' @export
 #' @return A list with query output dataframes for each data strategy
 #' @examples

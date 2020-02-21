@@ -1,10 +1,8 @@
 #' Diagnose a data strategy
 #'
-#' @param reference_model A causal model as created by \code{make_model}
-#' @param analysis_model A causal model as created by \code{make_model}
-#' @param observed A data frame with existing data
+#'
+#' @inheritParams gbiqqtools_internal_inherit_params
 #' @param queries Vector of causal statements characterizing queries
-#' @param given Vector of statements refining queries
 #' @param expand_grid Logical, expands grid over query arguments (queries, given)
 #' @param data_strategies list containing arguments for data strategies.
 #' For instance \code{list(strategy1 = list(N=1, withins = TRUE, vars = NULL, conditions = list(TRUE)))}
@@ -12,9 +10,6 @@
 #' Used in process tracing problems with a single case.
 #' In this case the estimand is taken to be case level and is drawn  *conditional on case data*,
 #' and the posterior variance is defined on the type, not the parameter (which is known, after all).
-#' @param sims Integer, number of estimand draws, defaults to max(sims, 4000)
-#' @param iter Integer, passed to stan, defaults to 4000
-#' @param chains Integer, passed to stan, defaults to 4
 #' @param refresh Integer, passed to stand, defaults to 1000,
 #' @param estimands_database Database of estimands, optional, for speed
 #' @param estimates_database Database of estimates, optional, for speed

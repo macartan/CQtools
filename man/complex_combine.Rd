@@ -6,19 +6,19 @@
 \usage{
 complex_combine(data_list)
 }
+\arguments{
+\item{data_list}{list of dataframes. All dataframes should contain event column but have unique event elements}
+}
 \description{
 Used to combine permutations of rows of dataframes in a list
 }
-\details{
-@param data_list list of dataframes. All dataframes should contain event column but have unique event elements
- @examples
- data_list <- list(
- data.frame(event = c("a", "b"), w = 1:2, x = 3:4),
- data.frame(event = c("c", "d", "e"), y = 5:7, z = 8:10, q = 11:13))
- complex_combine(data_list)
-
- data_list <- list(
- data.frame(event = c("a", "b"), w = 1:2, x = 3:4),
- data.frame(event = c("c", "d", "b"), y = 5:7, z = 8:10, q = 11:13))
- complex_combine(data_list)
+\examples{
+data_list <- list(
+data.frame(event = c("a", "b"), w = 1:2, x = 3:4),
+data.frame(event = c("c", "d", "e"), y = 5:7, z = 8:10, q = 11:13))
+complex_combine(data_list)
+data_list <- list(
+data.frame(event = c("a", "b"), w = 1:2, x = 3:4),
+data.frame(event = c("c", "d", "b"), y = 5:7, z = 8:10, q = 11:13))
+complex_combine(data_list)
 }

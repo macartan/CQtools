@@ -2,11 +2,7 @@
 #' Expected learning
 #'
 #' Expected reduction in variance from one step data collection strategy
-#' @param model A  model
-#' @param parameters a parameter vector
-#' @param query A query as a character string, for example 'Y[X=1]>Y[X=0]'
-#' @param strategy A set of node to be sought
-#' @param given A conditioning set as a character string that evaluates to a logical, for example 'Y==1'
+#' @inheritParams gbiqqtools_internal_inherit_params
 #' @importFrom  stringr str_extract_all boundary
 #' @importFrom dplyr mutate filter
 #' @export

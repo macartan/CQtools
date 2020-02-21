@@ -11,7 +11,7 @@ prob_par1_given_par2(par1, par2, nodal_type, P, type_prob)
 
 \item{par2}{parameter 2}
 
-\item{nodal_type}{vector of nodal types}
+\item{nodal_type}{vector of nodal types. See \code{\link[gbiqq]{get_nodal_types}}}
 
 \item{type_prob}{vector of type probabilities}
 }

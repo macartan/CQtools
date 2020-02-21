@@ -3,9 +3,8 @@
 #' Takes in a matrix of possible (single case) observations and returns the probability of each.
 #' FLAG: Some redundancy with make_data_probabilities
 #'
-#' @param model A  model
+#' @inheritParams gbiqqtools_internal_inherit_params
 #' @param data Data in long format
-#' @param parameters A numeric vector. Values of parameters may be specified. By default, parameters is drawn from priors.
 #' @export
 #' @examples
 #' model <- make_model("X->Y")

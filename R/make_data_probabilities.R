@@ -1,12 +1,10 @@
 #' Generates a probability distribution over possible data outcomes
 #'
 #' NOTE: This needs to be checked for whether it is taking account of strategy probabilities properly
-#'
-#' @param model A causal model as created by \code{make_model}
+#' @inheritParams gbiqqtools_internal_inherit_params
 #' @param pars A parameter vector
 #' @param possible_data Possible events data
 #' @param A_w Ambiguity matrix for data types, optional
-#' @param strategy vector providing data strategy set for event, optional
 #' @param strategy_set vector containing possible strategies, optional
 #' @param normalize logical if TRUE probabilites are normalized to sum to 1
 #' @export
