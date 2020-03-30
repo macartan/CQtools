@@ -3,7 +3,7 @@
 #' Takes in a matrix of possible (single case) observations and returns the probability of each.
 #' FLAG: Some redundancy with make_data_probabilities
 #'
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param data Data in long format
 #' @export
 #' @examples

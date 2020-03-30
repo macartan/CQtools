@@ -1,4 +1,4 @@
-Package: gbiqqtools
+Package: CQTools
 Type: Package
 Title: Tools for generalized BIQQ
 Version: 0.0.2
@@ -12,7 +12,7 @@ LazyData: true
 RoxygenNote: 7.0.2
 Depends:
 		R (>= 3.3.0),
-		gbiqq,
+		CausalQueries,
 		dplyr
 Imports:
     dagitty,
@@ -22,7 +22,7 @@ Imports:
     rlang (>= 0.2.0),
     stringr,
     partitions
-Remotes: macartan/gbiqq
+Remotes: macartan/CausalQueries
 Suggests: 
     testthat,
     rmarkdown,

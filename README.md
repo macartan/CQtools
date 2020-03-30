@@ -1,5 +1,5 @@
-# gbiqqtools
+# CQTools
 
-`gbiqqtools` is an R package for choosing research strategies using probabilistic causal models created with `gbiqq`. 
+`CQTools` is an R package for choosing research strategies using probabilistic causal models created with `CausalQueries`. 
 
 

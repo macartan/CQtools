@@ -12,7 +12,7 @@ allocations <- function(N, n) {
 }
 
 #' Helper: order event data and add strategy family
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param df dataframe with event data
 #' @examples
 #' model <- make_model("X -> M -> Y")
@@ -20,7 +20,7 @@ allocations <- function(N, n) {
 #'  collapse_data(model) %>%
 #'  filter(count == 1)
 #' df
-#' gbiqqtools:::check_event_data(df, model)
+#' CQTools:::check_event_data(df, model)
 #'
 check_event_data <- function(df, model) {
 	if(!(names(df)[[1]] == "event")) stop("event_data must include an initial `event` column")
@@ -34,7 +34,7 @@ check_event_data <- function(df, model) {
 
 
 #' helper to fill buckets dataframe
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param buckets dataframe with columns event, count and capacity vars plus strategy allocation var
 #' @param vars vars to be observed
 #' @export
@@ -56,7 +56,7 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 	df <- collapse_data(df, model, drop_family = TRUE)
 	# Assign n across new possible finer events
 	new_events <- cbind(event = df[df$count ==1, "event"],
-											gbiqqtools:::allocations(buckets[row, column], sum(df$count)))
+											CQTools:::allocations(buckets[row, column], sum(df$count)))
 
 	# tidy up
 	remaining  <- data.frame(event = buckets[row, 1], matrix(buckets$count[row] - buckets[row, column], ncol = ncol(new_events)-1, nrow = 1))
@@ -67,14 +67,14 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 
 #' Helper for getting all data on specified node with N observed
 #'
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param N Integer, number of observed cases
 #' @param vars String vector listing node observed
 #' @param condition Statement indicating condition satisfied by observed data
 #' @examples
 #' model <- make_model("X->M->Y")
-#' gbiqqtools:::all_possible(model, N=2, vars = c("X", "M"))
-#' gbiqqtools:::all_possible(model, N=2, vars = c("X", "Y"), condition = "Y==0")
+#' CQTools:::all_possible(model, N=2, vars = c("X", "M"))
+#' CQTools:::all_possible(model, N=2, vars = c("X", "Y"), condition = "Y==0")
 all_possible <- function(model, N, vars = NULL, condition = TRUE, possible_data = TRUE, complete_data = TRUE){
 
 	if(is.null(vars)) vars <- model$node
@@ -89,7 +89,7 @@ all_possible <- function(model, N, vars = NULL, condition = TRUE, possible_data 
 
 	df  <- collapse_data(df, model, drop_family = TRUE)
 
-	possible_data <- gbiqqtools:::allocations(N, n = sum(df$count>0))
+	possible_data <- CQTools:::allocations(N, n = sum(df$count>0))
 
 	out <- matrix(0, nrow(df), ncol(possible_data))
 	out[df$count > 0,] <- as.matrix(possible_data)
@@ -101,7 +101,7 @@ all_possible <- function(model, N, vars = NULL, condition = TRUE, possible_data 
 #'
 #' Takes data in long format, including NA values or blanks and returns vector with each row encoded as a data type.
 #'
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param data Data in long format
 #' @export
 #' @examples
@@ -128,7 +128,7 @@ encode_data <- function(model, data){
 #'
 #' Identifies possible conditional probabilities of nodal types. May be used to identify patterns of non independence.
 #'
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param generic_parameters Logical. Whether to require selection of a generic parameter. Defaults to TRUE.
 #' @keywords internal
 #' @examples
@@ -144,7 +144,7 @@ get_nodal_joint_probability <- function(model, parameters = NULL, generic_parame
 
     # Figure parameters to use
     if (!is.null(parameters))
-        parameters <- gbiqq:::clean_param_vector(model, parameters)
+        parameters <- CausalQueries:::clean_param_vector(model, parameters)
     if (is.null(parameters)) {
         if (!generic_parameters)
             parameters <- get_parameters(model)
@@ -169,7 +169,7 @@ get_nodal_joint_probability <- function(model, parameters = NULL, generic_parame
 #'
 #' @param par1 parameter 1
 #' @param par2 parameter 2
-#' @param nodal_type vector of nodal types. See \code{\link[gbiqq]{get_nodal_types}}
+#' @param nodal_type vector of nodal types. See \code{\link[CausalQueries]{get_nodal_types}}
 #' @param type_prob vector of type probabilities
 #'
 prob_par1_given_par2 <- function(par1, par2, nodal_type, P, type_prob) {
@@ -187,7 +187,7 @@ prob_par1_given_par2 <- function(par1, par2, nodal_type, P, type_prob) {
 #' @examples
 #' list1 = list(A = 1:3, B = 4)
 #' list2 = list(A = 1, C = 1:2)
-#' gbiqqtools:::combine_lists(list1, list2)
+#' CQTools:::combine_lists(list1, list2)
 #'
 combine_lists <- function(list1, list2) {
 

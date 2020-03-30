@@ -1,8 +1,8 @@
-#' gbiqqtools: A package for choosing research strategies.
+#' CQTools: A package for choosing research strategies.
 #'
 #' @docType package
 #'
-#' @name gbiqqtools
+#' @name CQTools
 #'
 #' @importFrom utils globalVariables
 #'

@@ -4,7 +4,7 @@
 #' Users can gather additional data on node specified via \code{vars} for any possible cases in the model ("any"). Or they can
 #' gather data in all cases within an observed dataset ("within"). Or they can specify  the subset of cases for which within-case data should be collected (e.g. "Y == 1").
 #'
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param N An integer. Number of node to seek.
 #' @param withins A list of logicals. Whether to seek node within existing data. Defaults to TRUE.
 #' @param conditions  A list of character strings indicating for which cases data should be gathered. Options are: (i) to gather additional data on node specified via \code{vars} for any possible cases in the model ("any"), (ii) to gather data in all cases within an observed dataset ("within"), or (iii) to specify the subset of cases for which within-case data should be collected (e.g. "Y == 1").
@@ -78,7 +78,7 @@ make_possible_data <- function(model,
 	if(!is.null(observed)) if(!identical(names(observed), c("event", "count"))){
 		stop("'observed' df should have two columns: event and count")}
 
-	if(is.null(observed)) observed <- gbiqq:::minimal_event_data(model)
+	if(is.null(observed)) observed <- CausalQueries:::minimal_event_data(model)
 
 	if("strategy" %in% names(observed)) observed <- dplyr::select(observed, - strategy)
 
@@ -93,7 +93,7 @@ make_possible_data <- function(model,
 		if(!identical(length(vars), length(N)) )
 		stop("Vars should be of length 1 or else have the same length as conditions  and N")
 
-	g_df <- gbiqqtools:::make_possible_data_single(
+	g_df <- CQTools:::make_possible_data_single(
 		model,
 		observed = observed,
 		withins = withins[[1]],
@@ -104,7 +104,7 @@ make_possible_data <- function(model,
 
 	if(length(N) == 1){
 		attr(g_df, "possible_data_args") <- list(N = N,withins = withins, conditions = conditions, vars = vars)
-		g_df <- (gbiqqtools:::check_event_data(g_df, model))
+		g_df <- (CQTools:::check_event_data(g_df, model))
 		colnames(g_df)[-c(1:2)] <- 1:(ncol(g_df)-2)
 
 		return(g_df)
@@ -152,7 +152,7 @@ make_possible_data <- function(model,
 #' Users can gather additional data on node specified via \code{vars} for any possible cases in the model ("any"). Or they can
 #' gather data in all cases within an observed dataset ("withins"). Or they can specify  the subset of cases for which withins-case data should be collected (e.g. "Y == 1").
 #' @keywords internal
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param N Number of node to seek
 #' @param withins logical Whether to seek node within existing data
 #' @param conditions  A list of character strings indicating for which cases data should be gathered. Options are: (i) to gather additional data on node specified via \code{vars} for any possible cases in the model ("any"), (ii) to gather data in all cases within an observed dataset ("within"), or (iii) to specify the subset of cases for which within-case data should be collected (e.g. "Y == 1").
@@ -179,15 +179,15 @@ make_possible_data_single <- function(model,
 
 	if(withins & is.null(observed)) stop("If 'withins' is specified 'observed' must be provided")
 
-	if(is.null(observed)) observed <- gbiqq:::minimal_event_data(model)[,-2]
+	if(is.null(observed)) observed <- CausalQueries:::minimal_event_data(model)[,-2]
 
 	if(N==0 & withins) return(observed)
 
 	# If not withins simply select possible data
 	if(!withins) return(
-		gbiqqtools:::complex_combine(list(
+		CQTools:::complex_combine(list(
 			observed,
-		  new = gbiqqtools:::all_possible(model, N, vars) %>% dplyr::select(-count))))
+		  new = CQTools:::all_possible(model, N, vars) %>% dplyr::select(-count))))
 
 
 	# Otherwise its more complicated: select from *within* available data
@@ -226,7 +226,7 @@ make_possible_data_single <- function(model,
 
 			data_list[["observed"]] <- observed
 
-			out <- gbiqqtools:::complex_combine(data_list)
+			out <- CQTools:::complex_combine(data_list)
 
 			names(out)[-1] <-paste0(strategy-3, ".",  1:(ncol(out)-1))
 			out

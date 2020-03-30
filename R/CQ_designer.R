@@ -1,8 +1,8 @@
-#' Integrate gbiqq with DeclareDesign
+#' Integrate CausalQueries with DeclareDesign
 #'
 #' Define a model, estimand, and answer strategy. will need @ import DeclareDesign
 #'
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param n Number of observations
 #' @param ... arguments passed to \code{query_model}
 #'
@@ -12,7 +12,7 @@
 #' @examples
 #' require("DeclareDesign")
 #'
-#' my_design <- gbiqq_designer(
+#' my_design <- CQ_designer(
 #'   reference_model = make_model("X -> Y") %>%
 #'     set_priors(c(1,1, 1, 1, 7, 1)),
 #'   analysis_model = make_model("X -> Y"),  # Prior model
@@ -31,7 +31,7 @@
 #' sim <- simulate_design(my_design, sims = 2)
 #'
 
-gbiqq_designer <- function(
+CQ_designer <- function(
 	reference_model = make_model("X -> Y"),
 	analysis_model  = reference_model,
 	n = 1,
@@ -71,7 +71,7 @@ gbiqq_designer <- function(
 
 
 
-	# Estimator runs gbiqq assuming answer-strategy model
+	# Estimator runs CQ updated model assuming answer-strategy model
 	estimate  <- declare_estimator(handler = function(data) {
 		updated <- update_model(model = analysis_model,  data = data)
 		value   <- do.call(query_model, c(model = list(updated),

@@ -1,7 +1,7 @@
 #' Generates a probability distribution over possible data outcomes
 #'
 #' NOTE: This needs to be checked for whether it is taking account of strategy probabilities properly
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param pars A parameter vector
 #' @param possible_data Possible events data
 #' @param A_w Ambiguity matrix for data types, optional

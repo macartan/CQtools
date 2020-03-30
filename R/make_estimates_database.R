@@ -1,8 +1,8 @@
-#' Generates a database of results using gbiqq over possible data
+#' Generates a database of results using updated model over possible data
 #'
 #' This function can run many models and can take a long time depending on the size of possible data.
 #'
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param possible_data A data frame with an events column and possible data columns (if a strategy columns is included it is ignored)
 #' @param queries list of statements for causal queries
 #' @param expand_grid logical, If TRUE combinations of queries and given are expanded
@@ -73,7 +73,7 @@ make_estimates_database <- function(model,
 
 		data <- expand_data(data_events, model)
 
-		updated <- gbiqq::gbiqq(model = model,
+		updated <- CausalQueries::update_model(model = model,
 														data = data,
 														iter = iter,
 														refresh = refresh,

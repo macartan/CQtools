@@ -1,7 +1,7 @@
 #' Diagnose a data strategy
 #'
 #'
-#' @inheritParams gbiqqtools_internal_inherit_params
+#' @inheritParams CQTools_internal_inherit_params
 #' @param queries Vector of causal statements characterizing queries
 #' @param expand_grid Logical, expands grid over query arguments (queries, given)
 #' @param data_strategies list containing arguments for data strategies.
@@ -75,8 +75,7 @@
 #'   observed = observed,
 #'   queries = queries,
 #'   given = given,
-#'   sims = 4000,
-#'   fit = fit)
+#'   sims = 4000)
 #' diagnosis
 #'
 #' # Wide or deep illustration
@@ -99,7 +98,6 @@
 #'   analysis_model = model,
 #'   data_strategies = data_strategies,
 #'   queries = "Y[X=1] - Y[X=0]",
-#'   fit = fit,
 #'   possible_data_list = possible_data_list)
 #' diagnosis
 #'
@@ -139,7 +137,7 @@ diagnose_strategies <- function(reference_model = NULL,
 		  reference_model <- analysis_model
 		} else {
 			data <- expand_data(observed, analysis_model)
-		  reference_model <- gbiqq(analysis_model, data, iter = iter, refresh = 0)
+		  reference_model <- update_model(analysis_model, data, iter = iter, refresh = 0)
 	}}
 
 	# 2. REFERENCE PARAMETERS DISTRIBUTION
