@@ -2,8 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{combine_lists}
 \alias{combine_lists}
-\title{combine two lists by names
-# FLAG : CHECK EXAMPLE BELOW}
+\title{combine two lists by names}
 \usage{
 combine_lists(list1, list2)
 }
@@ -14,11 +13,9 @@ combine_lists(list1, list2)
 }
 \description{
 combine two lists by names
-# FLAG : CHECK EXAMPLE BELOW
 }
 \examples{
 list1 = list(A = 1:3, B = 4)
 list2 = list(A = 1, C = 1:2)
-gbiqqtools:::combine_lists(list1, list2)
-
+CQtools:::combine_lists(list1, list2)
 }

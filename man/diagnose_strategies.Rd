@@ -4,30 +4,18 @@
 \alias{diagnose_strategies}
 \title{Diagnose a data strategy}
 \usage{
-diagnose_strategies(
-  reference_model = NULL,
-  analysis_model,
-  observed = NULL,
-  queries,
-  given = TRUE,
-  expand_grid = FALSE,
-  data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars = NULL, conditions
-    = list(TRUE))),
-  sims = 1000,
-  iter = NULL,
-  chains = 4,
-  refresh = 1000,
-  use_parameters = FALSE,
-  estimands_database = NULL,
-  estimates_database = NULL,
-  possible_data_list = NULL,
-  add_MSE = TRUE
-)
+diagnose_strategies(reference_model = NULL, analysis_model,
+  observed = NULL, queries, given = TRUE, expand_grid = FALSE,
+  data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars =
+  NULL, conditions = list(TRUE))), sims = 1000, iter = NULL,
+  chains = 4, refresh = 1000, use_parameters = FALSE,
+  estimands_database = NULL, estimates_database = NULL,
+  possible_data_list = NULL, add_MSE = TRUE)
 }
 \arguments{
-\item{reference_model}{A causal model as created by \code{\link[gbiqq]{make_model}}}
+\item{reference_model}{A causal model as created by \code{\link[CausalQueries]{make_model}}}
 
-\item{analysis_model}{A causal model as created by \code{\link[gbiqq]{make_model}}}
+\item{analysis_model}{A causal model as created by \code{\link[CausalQueries]{make_model}}}
 
 \item{observed}{A data.frame with observations.}
 
@@ -125,8 +113,7 @@ diagnosis <- diagnose_strategies(
   observed = observed,
   queries = queries,
   given = given,
-  sims = 4000,
-  fit = fit)
+  sims = 4000)
 diagnosis
 
 # Wide or deep illustration
@@ -149,7 +136,6 @@ diagnosis <- diagnose_strategies(
   analysis_model = model,
   data_strategies = data_strategies,
   queries = "Y[X=1] - Y[X=0]",
-  fit = fit,
   possible_data_list = possible_data_list)
 diagnosis
 
