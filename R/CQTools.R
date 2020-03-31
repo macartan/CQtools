@@ -1,8 +1,8 @@
-#' CQTools: A package for choosing research strategies.
+#' CQtools: A package for choosing research strategies.
 #'
 #' @docType package
 #'
-#' @name CQTools
+#' @name CQtools
 #'
 #' @importFrom utils globalVariables
 #'

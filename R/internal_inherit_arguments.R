@@ -16,7 +16,7 @@
 #'
 #' @keywords internal
 #'
-CQTools_internal_inherit_params <- function(model,
+CQtools_internal_inherit_params <- function(model,
 																							 reference_model,
 																							 analysis_model,
 																							 parameters,

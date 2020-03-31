@@ -1,6 +1,6 @@
 #' Strategy evaluation
 #'
-#' @inheritParams CQTools_internal_inherit_params
+#' @inheritParams CQtools_internal_inherit_params
 #' @param strategies  s x 3 matrix of strstegies. Each strategy is a triple that indicates (a) first node sought (b) action if first node is 0 (c) action if first node = 1
 #' @param prices A vector of prices of length length(model$nodes)
 #'
@@ -88,7 +88,7 @@ strategy_evaluation <- function(model,
 		} else {strategies <- matrix(strategies, 1, 3)}
 
 	x <- apply(strategies, 1, function(j) {
-	 CQTools:::strategy_evaluation_single(model,
+	 CQtools:::strategy_evaluation_single(model,
 	   										strategy  = j,
 	   										query = query,
 	   										given = given,
@@ -112,7 +112,7 @@ strategy_evaluation <- function(model,
 
 #' Internal function for evaluating a single strategy
 #' @keywords internal
-#' @inheritParams CQTools_internal_inherit_params
+#' @inheritParams CQtools_internal_inherit_params
 
 strategy_evaluation_single <- function(model,
 																strategy,
@@ -186,7 +186,7 @@ strategy_evaluation_single <- function(model,
 
 #' Make set of two step strategies
 #'
-#' @inheritParams CQTools_internal_inherit_params
+#' @inheritParams CQtools_internal_inherit_params
 #' @param vars Variables to
 #' @export
 #' @examples

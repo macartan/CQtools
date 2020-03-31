@@ -1,8 +1,7 @@
-
 #' Expected learning
 #'
 #' Expected reduction in variance from one step data collection strategy
-#' @inheritParams CQTools_internal_inherit_params
+#' @inheritParams CQtools_internal_inherit_params
 #' @importFrom  stringr str_extract_all boundary
 #' @importFrom dplyr mutate filter
 #' @export

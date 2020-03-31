@@ -4,7 +4,7 @@
 #' Calculate estimands conditional on observed data (currently, for single-case process tracing) together with data realization probabilities
 #' Realization probabilities are the probability of the observed data given data is sought on observed node
 #'
-#' @inheritParams CQTools_internal_inherit_params
+#' @inheritParams CQtools_internal_inherit_params
 #'
 #' @export
 #' @examples

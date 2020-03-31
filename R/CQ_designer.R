@@ -2,7 +2,7 @@
 #'
 #' Define a model, estimand, and answer strategy. will need @ import DeclareDesign
 #'
-#' @inheritParams CQTools_internal_inherit_params
+#' @inheritParams CQtools_internal_inherit_params
 #' @param n Number of observations
 #' @param ... arguments passed to \code{query_model}
 #'

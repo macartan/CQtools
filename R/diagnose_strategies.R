@@ -1,7 +1,7 @@
 #' Diagnose a data strategy
 #'
 #'
-#' @inheritParams CQTools_internal_inherit_params
+#' @inheritParams CQtools_internal_inherit_params
 #' @param queries Vector of causal statements characterizing queries
 #' @param expand_grid Logical, expands grid over query arguments (queries, given)
 #' @param data_strategies list containing arguments for data strategies.
