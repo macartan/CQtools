@@ -3,8 +3,4 @@
 \docType{package}
 \name{CQtools}
 \alias{CQtools}
-\alias{CQtools-package}
 \title{CQtools: A package for choosing research strategies.}
-\description{
-CQtools: A package for choosing research strategies.
-}

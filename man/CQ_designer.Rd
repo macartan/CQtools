@@ -4,8 +4,13 @@
 \alias{CQ_designer}
 \title{Integrate CausalQueries with DeclareDesign}
 \usage{
-CQ_designer(reference_model = make_model("X -> Y"),
-  analysis_model = reference_model, n = 1, query, ...)
+CQ_designer(
+  reference_model = make_model("X -> Y"),
+  analysis_model = reference_model,
+  n = 1,
+  query,
+  ...
+)
 }
 \arguments{
 \item{reference_model}{A causal model as created by \code{\link[CausalQueries]{make_model}}}
@@ -33,11 +38,11 @@ my_design <- CQ_designer(
   given = "X==1 & Y==1")
 
 df <- draw_data(my_design)
-mand <- draw_estimands(my_design)
+estimand <- draw_estimands(my_design)
 
 # Estimation and diagnosis
 options(mc.cores = parallel::detectCores())
-mate <- draw_estimates(my_design)
+estimate <- draw_estimates(my_design)
 diag <- diagnose_design(my_design, sims = 2)
 diag
 sim <- simulate_design(my_design, sims = 2)

@@ -21,7 +21,6 @@
 #' model <- make_model("S -> C -> Y <- R <- X; X -> C -> R") %>%
 #'    set_restrictions(labels =
 #'    list(C = "1110", R = "0001", Y = "0001"), keep = TRUE)
-#'
 #' conditional_inferences(model, query = list(COE = "(Y[S=0] > Y[S=1])"),
 #' given = "Y==1 & S==0")
 
@@ -41,7 +40,7 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 		 as.list
 	given[given==""] <- paste0(model$nodes[1], ">-1") # Guaranteed true
 
-	impossible <- lapply(given, function(s) all(!(get_query_types(model, s)$types))) %>% unlist
+	impossible <- lapply(given, function(s) all(!(CausalQueries:::map_query_to_causal_type(model, s)$types))) %>% unlist
 
 	if(all(impossible)) return(data.frame(vars, posterior = NA, prob = NA))
 
@@ -59,6 +58,8 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 
 	# Cac=lculate data probabilities
 	probs <- unlist(get_data_probs(model, data = vals))
+	probs <- probs[rownames(vals)]
+
 
 	out <- data.frame(cbind(vals, estimands, probs))
 

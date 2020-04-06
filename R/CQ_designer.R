@@ -21,11 +21,11 @@
 #'   given = "X==1 & Y==1")
 #'
 #' df <- draw_data(my_design)
-#' mand <- draw_estimands(my_design)
+#' estimand <- draw_estimands(my_design)
 #'
 #' # Estimation and diagnosis
 #' options(mc.cores = parallel::detectCores())
-#' mate <- draw_estimates(my_design)
+#' estimate <- draw_estimates(my_design)
 #' diag <- diagnose_design(my_design, sims = 2)
 #' diag
 #' sim <- simulate_design(my_design, sims = 2)
