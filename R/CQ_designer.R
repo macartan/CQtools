@@ -31,7 +31,7 @@
 #' sim <- simulate_design(my_design, sims = 2)
 #'
 
-CQ_designer <- function(
+causal_model_designer <- function(
 	reference_model = make_model("X -> Y"),
 	analysis_model  = reference_model,
 	n = 1,
@@ -87,11 +87,21 @@ CQ_designer <- function(
 	# Declare design
 	design <- data_step + estimand + estimate
 
+	design$reference_model <- reference_model
+	
+	class(design) <- "causal_model_design"
+	
 	my_diagnosands <- DeclareDesign::declare_diagnosands(select = c(mean_estimate, sd_estimate, mean_estimand, bias),
 																				MSE = mean((estimate - estimand)^2),
 																				posterior_var = mean(sd^2))
 
 	DeclareDesign::set_diagnosands(design, diagnosands = my_diagnosands)
 
+}
+
+
+#' @export
+plot.causal_model_design <- function(x, ...) {
+    CausalQueries:::plot_dag(x$reference_model)
 }
 
