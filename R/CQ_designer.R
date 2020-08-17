@@ -49,7 +49,7 @@ CQ_designer <- function(
 
 	# Data step
 	data_step <-
-		declare_population(data =
+	    DeclareDesign::declare_population(data =
 			{
 			reference_model <- set_parameters(reference_model, param_type = "prior_draw")
 			data <- do.call(make_data, c(model = list(reference_model), n = n,
@@ -59,7 +59,7 @@ CQ_designer <- function(
 		)
 
 	# Inquiry
-	estimand <- declare_estimand(handler = function(data) {
+	estimand <- DeclareDesign::declare_estimand(handler = function(data) {
 		reference_model <- set_parameters(reference_model, parameters = attr(data, "parameters"))
 		value <- do.call(query_model, c(model = list(reference_model),
 																		query = list(query),
@@ -72,7 +72,7 @@ CQ_designer <- function(
 
 
 	# Estimator runs CQ updated model assuming answer-strategy model
-	estimate  <- declare_estimator(handler = function(data) {
+	estimate  <- DeclareDesign::declare_estimator(handler = function(data) {
 		updated <- update_model(model = analysis_model,  data = data)
 		value   <- do.call(query_model, c(model = list(updated),
 																		query = list(query),
@@ -87,11 +87,11 @@ CQ_designer <- function(
 	# Declare design
 	design <- data_step + estimand + estimate
 
-	my_diagnosands <- declare_diagnosands(select = c(mean_estimate, sd_estimate, mean_estimand, bias),
+	my_diagnosands <- DeclareDesign::declare_diagnosands(select = c(mean_estimate, sd_estimate, mean_estimand, bias),
 																				MSE = mean((estimate - estimand)^2),
 																				posterior_var = mean(sd^2))
 
-	set_diagnosands(design, diagnosands = my_diagnosands)
+	DeclareDesign::set_diagnosands(design, diagnosands = my_diagnosands)
 
 }
 
