@@ -63,13 +63,14 @@
 #'  	N = list(1,1,1,1),
 #'  	conditions = list("X==0 & Y==0", "X==1 & Y==0", "X==0 & Y==1", "X==1 & Y==1"))
 
-make_possible_data <- function(model,
-															 observed = NULL,
-															 N = list(1),
-															 withins = TRUE,
-															 conditions = list(TRUE),
-															 vars = NULL,
-															 prefix = NULL) {
+make_possible_data <- function(
+    model,
+    observed = NULL,
+    N = list(1),
+	withins = TRUE,
+    conditions = list(TRUE),
+    vars = NULL,
+    prefix = NULL) {
 
 	if(is.null(vars)) vars <- list(model$node)
 
@@ -104,6 +105,7 @@ make_possible_data <- function(model,
 
 	if(length(N) == 1){
 		attr(g_df, "possible_data_args") <- list(N = N,withins = withins, conditions = conditions, vars = vars)
+		names(g_df)[1:2] <- c("event", "count")
 		g_df <- (CQtools:::check_event_data(g_df, model))
 		colnames(g_df)[-c(1:2)] <- 1:(ncol(g_df)-2)
 
@@ -134,6 +136,8 @@ make_possible_data <- function(model,
 
 	if(!is.null(prefix)) names(g_df)[-1] <- paste0(prefix, "_", names(g_df)[-1])
 
+	# Flag
+	names(g_df)[1:2] <- c("event", "count")
 	g_df <- check_event_data(g_df, model)
 
 	g_df[,!duplicated(t(g_df))]
@@ -263,7 +267,7 @@ make_possible_data_single <- function(model,
 
 complex_combine <- function(data_list) {
 
-	locations <- perm(unlist(lapply(data_list, ncol)) - 2)
+	locations <- CausalQueries:::perm(unlist(lapply(data_list, ncol)) - 2)
 
 	dfs <- lapply(1:nrow(locations), function(i) {
 		parts <-  lapply(1:length(data_list), function(j) {

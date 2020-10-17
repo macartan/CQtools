@@ -50,7 +50,7 @@ fill_bucket <- function(model, buckets, vars, row = 1, column = 4){
 	# Figure out set of possible finer units
 	df <- expand_data(data_events = data.frame(
 												event = buckets$event[row], count = 1), model)
-	possible_findings <- perm(rep(1, length(vars)))
+	possible_findings <- CausalQueries:::perm(rep(1, length(vars)))
 	df <- df %>% slice(rep(1:n(), each = nrow(possible_findings)))
 	df[vars] <- possible_findings
 	df <- collapse_data(df, model, drop_family = TRUE)
