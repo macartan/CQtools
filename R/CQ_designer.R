@@ -12,7 +12,7 @@
 #' @examples
 #' require("DeclareDesign")
 #'
-#' my_design <- CQ_designer(
+#' my_design <- causal_model_designer(
 #'   reference_model = make_model("X -> Y") %>%
 #'     set_priors(c(1,1, 1, 1, 7, 1)),
 #'   analysis_model = make_model("X -> Y"),  # Prior model
@@ -20,7 +20,7 @@
 #'   query = list(ATE = "Y[X=1] - Y[X=0]"),
 #'   given = "X==1 & Y==1")
 #'
-#' df <- draw_data(my_design)
+#' df <- DeclareDesign::draw_data(my_design)
 #' estimand <- draw_estimands(my_design)
 #'
 #' # Estimation and diagnosis
@@ -87,9 +87,9 @@ causal_model_designer <- function(
 	# Declare design
 	design <- data_step + estimand + estimate
 
-	design$reference_model <- reference_model
-	
-	class(design) <- "causal_model_design"
+	attr(design, "reference_model") <- reference_model
+
+	class(design) <- c(class(design), "causal_model_design")
 	
 	my_diagnosands <- DeclareDesign::declare_diagnosands(select = c(mean_estimate, sd_estimate, mean_estimand, bias),
 																				MSE = mean((estimate - estimand)^2),
@@ -102,6 +102,6 @@ causal_model_designer <- function(
 
 #' @export
 plot.causal_model_design <- function(x, ...) {
-    CausalQueries:::plot_dag(x$reference_model)
+    CausalQueries:::plot_dag(attr(x, "reference_model"))
 }
 
