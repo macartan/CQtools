@@ -6,6 +6,8 @@
 \usage{
 causal_model_designer(
   reference_model = make_model("X -> Y"),
+  param_type = "prior_draw",
+  prior_data = NULL,
   analysis_model = reference_model,
   n = 1,
   query,
@@ -15,7 +17,11 @@ causal_model_designer(
 \arguments{
 \item{reference_model}{A causal model as created by \code{\link[CausalQueries]{make_model}}}
 
-\item{analysis_model}{A causal model as created by \code{\link[CausalQueries]{make_model}}}
+\item{param_type}{parameter types to use for data draw; defaults to prior}
+
+\item{prior_data}{if prior data available this gets added to new data}
+
+\item{analysis_model}{model used for analysis. updating is based on priors from this model so any prior data based updating is communicate by re-providing prior data.}
 
 \item{n}{Number of observations}
 
@@ -29,7 +35,7 @@ Define a model, estimand, and answer strategy. will need @ import DeclareDesign
 \examples{
 require("DeclareDesign")
 
-my_design <- CQ_designer(
+my_design <- causal_model_designer(
   reference_model = make_model("X -> Y") \%>\%
     set_priors(c(1,1, 1, 1, 7, 1)),
   analysis_model = make_model("X -> Y"),  # Prior model
@@ -37,7 +43,7 @@ my_design <- CQ_designer(
   query = list(ATE = "Y[X=1] - Y[X=0]"),
   given = "X==1 & Y==1")
 
-df <- draw_data(my_design)
+df <- DeclareDesign::draw_data(my_design)
 estimand <- draw_estimands(my_design)
 
 # Estimation and diagnosis

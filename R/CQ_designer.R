@@ -4,6 +4,9 @@
 #'
 #' @inheritParams CQtools_internal_inherit_params
 #' @param n Number of observations
+#' @param analysis_model model used for analysis. updating is based on priors from this model so any prior data based updating is communicate by re-providing prior data.
+#' @param param_type parameter types to use for data draw; defaults to prior
+#' @param prior_data if prior data available this gets added to new data 
 #' @param ... arguments passed to \code{query_model}
 #'
 #' @importFrom dplyr %>%
@@ -33,6 +36,8 @@
 
 causal_model_designer <- function(
 	reference_model = make_model("X -> Y"),
+	param_type = "prior_draw", 
+	prior_data = NULL,
 	analysis_model  = reference_model,
 	n = 1,
 	query,
@@ -52,8 +57,11 @@ causal_model_designer <- function(
 	    DeclareDesign::declare_population(data =
 			{
 			reference_model <- set_parameters(reference_model, param_type = "prior_draw")
-			data <- do.call(make_data, c(model = list(reference_model), n = n,
-																				args[data_args]))
+			data <- do.call(
+			    make_data, 
+			    c(model = list(reference_model), n = n, args[data_args])
+			    )
+			if(!is.null(prior_data)) data <- bind_rows(data, prior_data)
 			attr(data, "parameters") <- get_parameters(reference_model)
 			data}
 		)
@@ -61,10 +69,11 @@ causal_model_designer <- function(
 	# Inquiry
 	estimand <- DeclareDesign::declare_estimand(handler = function(data) {
 		reference_model <- set_parameters(reference_model, parameters = attr(data, "parameters"))
-		value <- do.call(query_model, c(model = list(reference_model),
-																		query = list(query),
-																		using = "parameters",
-																		args[arg_names %in% query_args]))[,c(1,4)]
+		value <- do.call(query_model, 
+		                 c(model = list(reference_model),
+		                   query = list(query),
+		                   using = "parameters",
+		                   args[arg_names %in% query_args]))[,c(1,4)]
 
 		names(value) <- c("estimand_label", "estimand")
 		value})

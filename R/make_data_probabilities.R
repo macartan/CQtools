@@ -29,7 +29,7 @@ make_data_probabilities <- function(model, pars,  possible_data, A_w = NULL, str
 	if(normalize & ncol(possible_data)==3) return(1)
 
 	# Ambiguity matrix for data types
-	if(is.null(A_w)) A_w <- 	get_data_families(model, drop_impossible = TRUE, drop_all_NA = FALSE, mapping_only = TRUE)[possible_data$event, ]
+	if(is.null(A_w)) A_w <- CausalQueries:::get_data_families(model, drop_impossible = TRUE, drop_all_NA = FALSE, mapping_only = TRUE)[possible_data$event, ]
 
 	w_full = A_w %*% (get_event_prob(model, parameters = as.numeric(pars)))
 
