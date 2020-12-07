@@ -10,6 +10,7 @@
 #' @param conditions  A list of character strings indicating for which cases data should be gathered. Options are: (i) to gather additional data on node specified via \code{vars} for any possible cases in the model ("any"), (ii) to gather data in all cases within an observed dataset ("within"), or (iii) to specify the subset of cases for which within-case data should be collected (e.g. "Y == 1").
 #' @param vars A character vector. Variables to be sought or NA. If NA \code{make_possible_data} gathers data on all node containing NA for the specified data strategy.
 #' @param prefix for columns of output; useful if multiple dataframes are later merged
+#' @param unique = TRUE  If same data is gathered via different routes it still only gets represented once
 #' @export
 #' @return A dataset with columns: event, strategy, plus possibly multiple cases profiles
 #' @examples
@@ -70,7 +71,8 @@ make_possible_data <- function(
 	withins = TRUE,
     conditions = list(TRUE),
     vars = NULL,
-    prefix = NULL) {
+    prefix = NULL,
+    unique = TRUE) {
 
 	if(is.null(vars)) vars <- list(model$node)
 
@@ -143,6 +145,8 @@ make_possible_data <- function(
 	g_df[,!duplicated(t(g_df))]
 
 	colnames(g_df)[-c(1:2)] <- 1:(ncol(g_df)-2)
+	
+	if(unique) g_df <- g_df[, !duplicated(t(g_df))]
 
 	g_df
 }

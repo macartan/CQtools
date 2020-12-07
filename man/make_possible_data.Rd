@@ -11,7 +11,8 @@ make_possible_data(
   withins = TRUE,
   conditions = list(TRUE),
   vars = NULL,
-  prefix = NULL
+  prefix = NULL,
+  unique = TRUE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ make_possible_data(
 \item{vars}{A character vector. Variables to be sought or NA. If NA \code{make_possible_data} gathers data on all node containing NA for the specified data strategy.}
 
 \item{prefix}{for columns of output; useful if multiple dataframes are later merged}
+
+\item{unique}{= TRUE  If same data is gathered via different routes it still only gets represented once}
 }
 \value{
 A dataset with columns: event, strategy, plus possibly multiple cases profiles

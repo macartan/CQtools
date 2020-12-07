@@ -33,17 +33,17 @@
 #'       given = c(TRUE, "Y==1 & X==1"))
 
 make_estimates_database <- function(model,
-																		observed,
-																		possible_data = NULL,
-																		queries = "Y[X=1]>Y[X=0]",
-																		given = TRUE,
-																		expand_grid = FALSE,
-																		use_parameters = FALSE,
-																		iter = 4000,
-																		refresh = 0,
-																		chains = NULL,
-																		...) {
-
+                                    observed,
+                                    possible_data = NULL,
+                                    queries = "Y[X=1]>Y[X=0]",
+                                    given = TRUE,
+                                    expand_grid = FALSE,
+                                    use_parameters = FALSE,
+                                    iter = 4000,
+                                    refresh = 0,
+                                    chains = NULL,
+                                    ...) {
+    
 
 	if(is.null(possible_data)) possible_data <- make_possible_data(model, observed, ...)
 	if("strategy" %in% names(possible_data)) possible_data <- dplyr::select(possible_data, -strategy)
@@ -70,21 +70,23 @@ make_estimates_database <- function(model,
 	lapply(2:ncol(possible_data), function(j) {
 
 		data_events <- possible_data[, c(1, j)]
-
+        names(data_events) <- c("event", "count")
+        
 		data <- expand_data(data_events, model)
 
-		updated <- CausalQueries::update_model(model = model,
-														data = data,
-														iter = iter,
-														refresh = refresh,
-														chains = chains)
+		updated <- CausalQueries::update_model(
+		    model = model,
+			data = data,
+			iter = iter,
+			refresh = refresh,
+			chains = chains)
 
 		data.frame(
 			query_model(updated,
-									queries = queries,
-									using = "posteriors",
-									given = given,
-									expand_grid = expand_grid),
+			            queries = queries,
+						using = "posteriors",
+						given = given,
+						expand_grid = expand_grid),
 			data_pattern = j -1
 			)
 
