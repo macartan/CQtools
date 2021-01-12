@@ -10,6 +10,7 @@
 #' @param conditions  A list of character strings indicating for which cases data should be gathered. Options are: (i) to gather additional data on node specified via \code{vars} for any possible cases in the model ("any"), (ii) to gather data in all cases within an observed dataset ("within"), or (iii) to specify the subset of cases for which within-case data should be collected (e.g. "Y == 1").
 #' @param vars A character vector. Variables to be sought or NA. If NA \code{make_possible_data} gathers data on all node containing NA for the specified data strategy.
 #' @param prefix for columns of output; useful if multiple dataframes are later merged
+#' @param unique = TRUE  If same data is gathered via different routes it still only gets represented once
 #' @export
 #' @return A dataset with columns: event, strategy, plus possibly multiple cases profiles
 #' @examples
@@ -63,13 +64,15 @@
 #'  	N = list(1,1,1,1),
 #'  	conditions = list("X==0 & Y==0", "X==1 & Y==0", "X==0 & Y==1", "X==1 & Y==1"))
 
-make_possible_data <- function(model,
-															 observed = NULL,
-															 N = list(1),
-															 withins = TRUE,
-															 conditions = list(TRUE),
-															 vars = NULL,
-															 prefix = NULL) {
+make_possible_data <- function(
+    model,
+    observed = NULL,
+    N = list(1),
+	withins = TRUE,
+    conditions = list(TRUE),
+    vars = NULL,
+    prefix = NULL,
+    unique = TRUE) {
 
 	if(is.null(vars)) vars <- list(model$node)
 
@@ -104,6 +107,7 @@ make_possible_data <- function(model,
 
 	if(length(N) == 1){
 		attr(g_df, "possible_data_args") <- list(N = N,withins = withins, conditions = conditions, vars = vars)
+		names(g_df)[1:2] <- c("event", "count")
 		g_df <- (CQtools:::check_event_data(g_df, model))
 		colnames(g_df)[-c(1:2)] <- 1:(ncol(g_df)-2)
 
@@ -134,11 +138,15 @@ make_possible_data <- function(model,
 
 	if(!is.null(prefix)) names(g_df)[-1] <- paste0(prefix, "_", names(g_df)[-1])
 
+	# Flag
+	names(g_df)[1:2] <- c("event", "count")
 	g_df <- check_event_data(g_df, model)
 
 	g_df[,!duplicated(t(g_df))]
 
 	colnames(g_df)[-c(1:2)] <- 1:(ncol(g_df)-2)
+	
+	if(unique) g_df <- g_df[, !duplicated(t(g_df))]
 
 	g_df
 }
@@ -263,7 +271,7 @@ make_possible_data_single <- function(model,
 
 complex_combine <- function(data_list) {
 
-	locations <- perm(unlist(lapply(data_list, ncol)) - 2)
+	locations <- CausalQueries:::perm(unlist(lapply(data_list, ncol)) - 2)
 
 	dfs <- lapply(1:nrow(locations), function(i) {
 		parts <-  lapply(1:length(data_list), function(j) {

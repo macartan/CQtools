@@ -4,13 +4,25 @@
 \alias{diagnose_strategies}
 \title{Diagnose a data strategy}
 \usage{
-diagnose_strategies(reference_model = NULL, analysis_model,
-  observed = NULL, queries, given = TRUE, expand_grid = FALSE,
-  data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars =
-  NULL, conditions = list(TRUE))), sims = 1000, iter = NULL,
-  chains = 4, refresh = 1000, use_parameters = FALSE,
-  estimands_database = NULL, estimates_database = NULL,
-  possible_data_list = NULL, add_MSE = TRUE)
+diagnose_strategies(
+  reference_model = NULL,
+  analysis_model,
+  observed = NULL,
+  queries,
+  given = TRUE,
+  expand_grid = FALSE,
+  data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars = NULL,
+    conditions = list(TRUE))),
+  sims = 1000,
+  iter = NULL,
+  chains = 4,
+  refresh = 1000,
+  use_parameters = FALSE,
+  estimands_database = NULL,
+  estimates_database = NULL,
+  possible_data_list = NULL,
+  add_MSE = TRUE
+)
 }
 \arguments{
 \item{reference_model}{A causal model as created by \code{\link[CausalQueries]{make_model}}}
