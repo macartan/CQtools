@@ -1,4 +1,4 @@
 library(testthat)
-library(gbiqqtools)
+library(CQtools)
 
-test_check("gbiqqtools")
+test_check("CQtools")
