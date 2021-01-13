@@ -147,7 +147,10 @@ make_possible_data <- function(
 	colnames(g_df)[-c(1:2)] <- 1:(ncol(g_df)-2)
 	
 	if(unique) g_df <- g_df[, !duplicated(t(g_df))]
-
+    
+	# Need the arguments of the call to resuse them in make_data_probabilities
+	attr(g_df, "possible_data_args") <- list(N = N, withins = withins, 
+	                                         conditions = conditions, vars = vars)
 	g_df
 }
 
