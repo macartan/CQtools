@@ -17,5 +17,5 @@ combine two lists by names
 \examples{
 list1 = list(A = 1:3, B = 4)
 list2 = list(A = 1, C = 1:2)
-CQtools:::combine_lists(list1, list2)
+combine_lists(list1, list2)
 }
