@@ -47,7 +47,7 @@ df <- DeclareDesign::draw_data(my_design)
 estimand <- draw_estimands(my_design)
 
 # Estimation and diagnosis
-options(mc.cores = parallel::detectCores())
+# options(mc.cores = parallel::detectCores())
 estimate <- draw_estimates(my_design)
 diag <- diagnose_design(my_design, sims = 2)
 diag

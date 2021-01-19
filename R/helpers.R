@@ -2,6 +2,7 @@
 #'
 #' @param N Number of observations to be distributed
 #' @param n Number of possible values observations could take
+#' @export
 #' @examples
 #' allocations(4,2)
 allocations <- function(N, n) {
@@ -187,7 +188,7 @@ prob_par1_given_par2 <- function(par1, par2, nodal_type, P, type_prob) {
 #' @examples
 #' list1 = list(A = 1:3, B = 4)
 #' list2 = list(A = 1, C = 1:2)
-#' CQtools:::combine_lists(list1, list2)
+#' combine_lists(list1, list2)
 
 combine_lists <- function(list1, list2) {
 
