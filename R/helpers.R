@@ -188,7 +188,7 @@ prob_par1_given_par2 <- function(par1, par2, nodal_type, P, type_prob) {
 #' @examples
 #' list1 = list(A = 1:3, B = 4)
 #' list2 = list(A = 1, C = 1:2)
-#' combine_lists(list1, list2)
+#' CQtools:::combine_lists(list1, list2)
 
 combine_lists <- function(list1, list2) {
 
