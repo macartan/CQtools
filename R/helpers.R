@@ -25,9 +25,10 @@ allocations <- function(N, n) {
 check_event_data <- function(df, model) {
 	if(!(names(df)[[1]] == "event")) stop("event_data must include an initial `event` column")
 	if("strategy" %in% names(df)) df <- dplyr::select(df, - strategy)
-	structure <- collapse_data(expand_data(df[, 1:2], model), model)[, 1:2]
+	structure <- collapse_data(expand_data(df[, 1:2], model), model, drop_NA = FALSE)[, 1:2]
 	out <- dplyr::left_join(structure, df, by = "event")
 	out[is.na(out)] <- 0
+	right_join(out, df %>% dplyr::select("event"))
 	out
 	}
 
