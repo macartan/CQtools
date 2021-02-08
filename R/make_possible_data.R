@@ -106,10 +106,14 @@ make_possible_data <- function(
 
 
 	if(length(N) == 1){
-		attr(g_df, "possible_data_args") <- list(N = N,withins = withins, conditions = conditions, vars = vars)
 		names(g_df)[1:2] <- c("event", "count")
 		g_df <- (CQtools:::check_event_data(g_df, model))
 		colnames(g_df)[-c(1:2)] <- 1:(ncol(g_df)-2)
+		attr(g_df, "possible_data_args") <- list(N = N,
+		                                         withins = withins, 
+		                                         conditions = conditions, 
+		                                         vars = vars,
+		                                         old_data = observed) 
 
 		return(g_df)
 	}
