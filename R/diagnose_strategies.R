@@ -203,7 +203,7 @@ diagnose_strategies <- function(reference_model = NULL,
   # 5 PROB DISTRIBUTION ON POSSIBLE DATA: FOR EACH STRATEGY nrow(possible_data) * sims matrix of data probabilities
 	##################################################################################################
   ## FLAG: THIS FUNCTION IS THE SLOWEST STEP: HOW TO SPEED UP?
-	A_map <-  get_data_families(reference_model, drop_impossible = TRUE, drop_all_NA = TRUE, mapping_only = TRUE)
+	A_map <-  CausalQueries:::get_data_families(reference_model, drop_impossible = TRUE, drop_all_NA = TRUE, mapping_only = TRUE)
 
 	# prior_ref_dist <- get_prior_distribution(reference_model)
 

@@ -27,7 +27,7 @@
 #' estimand <- draw_estimands(my_design)
 #'
 #' # Estimation and diagnosis
-#' options(mc.cores = parallel::detectCores())
+#'# options(mc.cores = parallel::detectCores())
 #' estimate <- draw_estimates(my_design)
 #' diag <- diagnose_design(my_design, sims = 2)
 #' diag
@@ -73,9 +73,11 @@ causal_model_designer <- function(
 		                 c(model = list(reference_model),
 		                   query = list(query),
 		                   using = "parameters",
-		                   args[arg_names %in% query_args]))[,c(1,4)]
-
-		names(value) <- c("estimand_label", "estimand")
+		                   args[arg_names %in% query_args]))
+		
+		names(value)[names(value) == "mean"] <- "estimand"
+		names(value)[names(value) == "Query"] <- "estimand_label"
+		value <- value[c("estimand_label", "estimand")]
 		value})
 
 
@@ -88,7 +90,9 @@ causal_model_designer <- function(
 																		using = "posteriors",
 																		args[arg_names %in% query_args]))
 
-		names(value)[c(1,4)]<- c("estimand_label", "estimate")
+		names(value)[names(value) == "mean"] <- "estimate"
+		names(value)[names(value) == "Query"] <- "estimand_label"
+		names(value)[names(value) == "sd"]  <-  "std.error"
 		value$estimator_label <- paste0("est_", value$estimand_label)
 		value
 	})
@@ -102,7 +106,7 @@ causal_model_designer <- function(
 	
 	my_diagnosands <- DeclareDesign::declare_diagnosands(select = c(mean_estimate, sd_estimate, mean_estimand, bias),
 																				MSE = mean((estimate - estimand)^2),
-																				posterior_var = mean(sd^2))
+																				posterior_var = mean(std.error^2))
 
 	DeclareDesign::set_diagnosands(design, diagnosands = my_diagnosands)
 
