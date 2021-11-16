@@ -3,6 +3,8 @@
 #'
 #' Calculate estimands conditional on observed data (currently, for single-case process tracing) together with data realization probabilities
 #' Realization probabilities are the probability of the observed data given data is sought on observed node
+#' 
+#' Function is deigned for process tracing; it can be applied to a posterior distribution however though currently data probabilities usin parameters only.
 #'
 #' @inheritParams CQtools_internal_inherit_params
 #'
@@ -17,6 +19,13 @@
 #'   set_restrictions(labels = list(M = "10", Y = "10"))
 #' conditional_inferences(model, query = "Y[X=1]>Y[X=0]", given = "Y==1")
 #'
+#' # Example on posteriors given monotonic X -> M -> Y model
+#' model <- make_model("X-> M -> Y")  %>%
+#'   set_restrictions(labels = list(M = "10", Y = "10")) %>%
+#'   update_model(data.frame(X=0:1, Y = 0:1))
+#' conditional_inferences(model, query = "Y[X=1]>Y[X=0]", given = "Y==1",
+#' using = "posteriors")
+#'
 #' # Running example
 #' model <- make_model("S -> C -> Y <- R <- X; X -> C -> R") %>%
 #'    set_restrictions(labels =
@@ -24,8 +33,15 @@
 #' conditional_inferences(model, query = list(COE = "(Y[S=0] > Y[S=1])"),
 #' given = "Y==1 & S==0")
 
-conditional_inferences <- function(model, query, parameters=NULL,  given = NULL){
+conditional_inferences <- function(model, 
+                                   query, 
+                                   parameters=NULL,  
+                                   given = NULL, 
+                                   using = "parameters"){
 
+
+    if(!is.null(parameters) & using != "parameters") stop("parameters arguments is not consistent with using argument")
+    
 	if(is.null(parameters)) parameters <- get_parameters(model)
 
 	vars <- model$nodes
@@ -49,6 +65,7 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 
 
 	# Calculate estimands
+	if(using == "parameters")
 	estimands <- query_model(
 		model   = model,
 		parameters  = parameters,
@@ -56,7 +73,15 @@ conditional_inferences <- function(model, query, parameters=NULL,  given = NULL)
 		queries = query,
 		given = given)$mean
 
-	# Cac=lculate data probabilities
+	if(using != "parameters")
+	    estimands <- query_model(
+	        model   = model,
+	        using = using,
+	        queries = query,
+	        given = given, 
+	        case_level = TRUE)$mean
+	
+	# Calculate data probabilities
 	probs <- unlist(get_data_probs(model, data = vals))
 	probs <- probs[rownames(vals)]
 
