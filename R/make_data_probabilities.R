@@ -45,11 +45,7 @@ make_data_probabilities <- function(
 	
 	if (is.null(event_probs)){
     
-    	 # Type probabilities
-    	 if (is.null(type_prob))
-    	     type_prob <- get_type_prob(model = model, P = P, parameters = as.numeric(pars))
-    	 
-    	 event_probs <- get_event_prob(model, parameters = as.numeric(pars), type_prob=type_prob)
+    	 event_probs <- get_event_prob(model, parameters = as.numeric(pars))
 
     	 }
     
