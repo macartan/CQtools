@@ -11,8 +11,8 @@ diagnose_strategies(
   queries,
   given = TRUE,
   expand_grid = FALSE,
-  data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars = NULL,
-    conditions = list(TRUE))),
+  data_strategies = list(strategy1 = list(N = 1, withins = TRUE, vars = NULL, conditions
+    = list(TRUE))),
   sims = 1000,
   iter = NULL,
   chains = 4,

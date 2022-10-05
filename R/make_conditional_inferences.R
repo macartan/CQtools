@@ -4,7 +4,7 @@
 #' Calculate estimands conditional on observed data (currently, for single-case process tracing) together with data realization probabilities
 #' Realization probabilities are the probability of the observed data given data is sought on observed node
 #' 
-#' Function is deigned for process tracing; it can be applied to a posterior distribution however though currently data probabilities usin parameters only.
+#' Function is designed for process tracing; it can be applied to a posterior distribution however though currently data probabilities using parameters only.
 #'
 #' @inheritParams CQtools_internal_inherit_params
 #'
@@ -37,10 +37,12 @@ conditional_inferences <- function(model,
                                    query, 
                                    parameters=NULL,  
                                    given = NULL, 
-                                   using = "parameters"){
+                                   using = "parameters",
+                                   case_level = FALSE){
 
 
-    if(!is.null(parameters) & using != "parameters") stop("parameters arguments is not consistent with using argument")
+    if(!is.null(parameters) & using != "parameters") 
+        stop("parameters arguments is not consistent with using argument")
     
 	if(is.null(parameters)) parameters <- get_parameters(model)
 
@@ -79,7 +81,7 @@ conditional_inferences <- function(model,
 	        using = using,
 	        queries = query,
 	        given = given, 
-	        case_level = TRUE)$mean
+	        case_level = case_level)$mean
 	
 	# Calculate data probabilities
 	probs <- unlist(get_data_probs(model, data = vals))
