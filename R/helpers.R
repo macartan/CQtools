@@ -122,9 +122,6 @@ encode_data <- function(model, data){
 }
 
 
-
-
-
 #' Get joint distribution of nodal types
 #'
 #' Identifies possible conditional probabilities of nodal types. May be used to identify patterns of non independence.
@@ -220,5 +217,39 @@ zero_range <- function(x, tol = .Machine$double.eps^0.5) {
 		return(TRUE)
 	x <- range(x)/mean(x)
 	isTRUE(all.equal(x[1], x[2], tolerance = tol))
+}
+
+
+#' Generate strategy statements given data
+#'
+#' Helper to generate statements of the form "X = 1 & Y = 0"
+#' from realized data on one observation
+#'
+#' @param data A data frame with one row
+#' @param strategies A list of strategies where each strategy
+#'   is a set of nodes to be observed
+#' @keywords helper
+#' @export
+#' @return A string
+#' @examples
+#'  data.frame(X = 1, M = 0, Y = NA) %>%
+#'  strategy_statements(list(c("X", "M", "Y"), "X", "Y"))
+#'
+strategy_statements <- function(data, strategies){
+    
+    if(nrow(data) !=1) {
+        stop("strategy_statements is designed for single row datasets")
+    }
+    
+    if(!is.list(strategies)) {
+        stop("please provide strategies within a list (e.g.(list(c('X', 'Y'))")
+    }
+    
+    lapply(strategies, function(s)
+        (sapply(s, function(x)
+            paste(x, "==", data[x]))[sapply(s, function(x)
+                ! is.na(data[x]))]) %>%
+            paste(collapse = " & "))
+    
 }
 
